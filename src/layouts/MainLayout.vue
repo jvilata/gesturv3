@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat @click="leftDrawerOpen = !leftDrawerOpen" round dense icon="menu" />
         <div class="items-center no-wrap absolute-center">
-          <div class="text-subtitle1">{{ nomAplicacion }}  -  v07.08.23</div>
+          <div class="text-subtitle1">{{ nomAplicacion }}  -  v04.08.24</div>
         </div>
         <div class="q-gutter-sm q-pr-md row items-center no-wrap absolute-right">
           <q-btn round flat class="bg-red-9 text-weight-light">
