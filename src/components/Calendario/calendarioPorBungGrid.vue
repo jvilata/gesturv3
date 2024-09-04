@@ -192,6 +192,10 @@ export default {
           this.getServicios()
         })
         .catch(error => {
+          if(error.response.data){
+            this.$q.dialog({ title: 'Error', message: error.response.data })
+          }
+          else 
           this.$q.dialog({ title: 'Error', message: error.message })
         })
     },
