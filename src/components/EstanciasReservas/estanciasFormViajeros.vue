@@ -54,13 +54,13 @@
               v-slot="scope"
               @save="updateRecord(props.row)" >
               <q-input
-                v-if="['Nombre', 'PrimerApellido', 'SegundoApellido', 'dni', 'pasaporte', 'PaisNac'].includes(col.name)"
+                v-if="['Nombre', 'PrimerApellido', 'SegundoApellido', 'dni', 'pasaporte', 'soporteDocumento', 'direccion', 'codigoPostal', 'correo'].includes(col.name)"
                 type="text"
                 v-model="scope.value"
                 dense
                 autofocus/>
               <q-input
-                v-if="['FechaEntrada', 'FechaExp', 'FechaNac'].includes(col.name)"
+                v-if="['FechaEntrada', 'FechaExp', 'FechaNac', 'fechaSalida'].includes(col.name)"
                 type="date"
                 :model-value="scope.value.substring(0,10)"
                 @update:model-value="v=>scope.value=v + ' 00:00:00'"
@@ -81,6 +81,60 @@
                 :options="tipoDocList"
                 emit-value
                 map-options
+              />
+              <q-select
+                v-if="['paisNac'].includes(col.name)"
+                class="col-xs-5 col-sm-2"
+                stack-label
+                clearable
+                outlined
+                v-model="scope.value"
+                :options="listaPaisesFilter"
+                map-options
+                option-value="codigoPais"
+                option-label="nombrePais"
+                emit-value
+                @filter="filterPaises"
+                use-input
+                hide-selected
+                fill-input
+                input-debounce="0"
+              />
+              <q-select
+                v-if="['pais'].includes(col.name)"
+                class="col-xs-5 col-sm-2"
+                stack-label
+                clearable
+                outlined
+                v-model="scope.value"
+                :options="listaPaisesFilter"
+                map-options
+                option-value="codigoPais"
+                option-label="nombrePais"
+                emit-value
+                @filter="filterPaises"
+                use-input
+                hide-selected
+                fill-input
+                input-debounce="0"
+              />
+              <q-select
+                v-if="['codigoMunicipio'].includes(col.name)"
+                class="col-xs-5 col-sm-2"
+                stack-label
+                clearable
+                outlined
+                v-model="scope.value"
+                :options="listaMunicipiosFilter"
+                map-options
+                option-value="codigoMunicipio"
+                option-label="nombreMunicipio"
+                emit-value
+                @filter="filterMunicipios"
+                use-input
+                hide-selected
+                fill-input
+                input-debounce="0"
               />
             </q-popup-edit>
           </q-td>
@@ -133,24 +187,33 @@ export default {
       registrosSeleccionados: [],
       response: 0,
       registroEditado: {},
+      listaMunicipiosFilter: this.listaMunicipios,
+      listaPaisesFilter: this.listaPaises,
       columns: [
         { name: 'id', label: 'ID', align: 'center', field: 'id', sortable: true },
         { name: 'Nombre', align: 'left', label: 'nombre', field: 'Nombre', sortable: true },
         { name: 'PrimerApellido', align: 'left', label: 'Primer Apellido', field: 'PrimerApellido', sortable: true },
         { name: 'SegundoApellido', align: 'left', label: 'Segundo Apellido', field: 'SegundoApellido', sortable: true },
-        { name: 'sexo', align: 'left', label: 'sexo', field: 'sexo', sortable: true },
+       // { name: 'sexo', align: 'left', label: 'sexo', field: 'sexo', sortable: true },
         { name: 'TipoDoc', align: 'left', label: 'Tipo Doc.', field: 'TipoDoc', sortable: true },
         { name: 'dni', label: 'DNI', align: 'center', field: 'dni', sortable: true },
         { name: 'pasaporte', align: 'left', label: 'Pasaporte', field: 'pasaporte', sortable: true },
+        { name: 'soporteDocumento', align: 'left', label: 'soporteDocumento', field: 'soporteDocumento', sortable: true },
         { name: 'FechaEntrada', align: 'left', label: 'Fecha Entrada', field: 'FechaEntrada', sortable: true, format: val => { var res = date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'DD-MM-YYYY'); return ((res === '30-11-1899') || (res === '31-12-1899') ? '' : res) } },
-        { name: 'FechaExp', align: 'left', label: 'Fecha Exp.', field: 'FechaExp', sortable: true, format: val => { var res = date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'DD-MM-YYYY'); return ((res === '30-11-1899') || (res === '31-12-1899') ? '' : res) } },
+        { name: 'fechaSalida', align: 'left', label: 'Fecha Salida', field: 'fechaSalida', sortable: true, format: val => { var res = date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'DD-MM-YYYY'); return ((res === '30-11-1899') || (res === '31-12-1899') ? '' : res) } },
+       // { name: 'FechaExp', align: 'left', label: 'Fecha Exp.', field: 'FechaExp', sortable: true, format: val => { var res = date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'DD-MM-YYYY'); return ((res === '30-11-1899') || (res === '31-12-1899') ? '' : res) } },
         { name: 'FechaNac', align: 'left', label: 'Fecha Nac.', field: 'FechaNac', sortable: true, format: val => { var res = date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'DD-MM-YYYY'); return ((res === '30-11-1899') || (res === '31-12-1899') ? '' : res) } },
-        { name: 'PaisNac', align: 'left', label: 'paisNac', field: 'PaisNac', sortable: true }
+        { name: 'paisNac', align: 'left', label: 'paisNac', field: 'PaisNac', sortable: true },
+        { name: 'direccion', align: 'left', label: 'direccion', field: 'direccion', sortable: true },
+        { name: 'codigoMunicipio', align: 'left', label: 'Cod. Municipio', field: 'codigoMunicipio', sortable: true },
+        { name: 'codigoPostal', align: 'left', label: 'Cod. Postal', field: 'codigoPostal', sortable: true },
+        { name: 'pais', align: 'left', label: 'País', field: 'pais', sortable: true },
+        { name: 'correo', align: 'left', label: 'Correo', field: 'correo', sortable: true }
       ],
       pagination: { rowsPerPage: 0 },
       listaRegTipo2: [],
       sexoList: [
-        'M', 'F'
+        'M', 'H', 'O'
       ],
       tipoDocList: [
         'D', 'P', 'C'
@@ -159,11 +222,24 @@ export default {
     }
   },
   computed: {
-    ...mapState('login', ['user'])
+    ...mapState('login', ['user']),
+    ...mapState('ministerioGC', ['listaMunicipios', 'listaPaises'])
   },
   methods: {
     ...mapActions('tabs', ['addTab']),
     ...mapActions('viajeros', ['findViajerosFilter', 'addViajero', 'borrarViajero']),
+    filterMunicipios (val, update, abort) {
+      update(() => {
+        const needle = val.toLowerCase()
+        this.listaMunicipiosFilter = this.listaMunicipios.filter(v => v.nombreMunicipio.toLowerCase().indexOf(needle) > -1)
+      })
+    },
+    filterPaises (val, update, abort) {
+      update(() => {
+        const needle = val.toLowerCase()
+        this.listaPaisesFilter = this.listaPaises.filter(v => v.nombrePais.toLowerCase().indexOf(needle) > -1)
+      })
+    },
     formatDate (date1) {
       return date.formatDate(date1, 'DD/MM/YYYY')
     },
@@ -180,6 +256,7 @@ export default {
     addRecord () {
       var record = {
         FechaEntrada: this.value.fechaEntrada,
+        fechaSalida: this.value.fechaSalida,
         Nombre: '',
         PrimerApellido: '',
         SegundoApellido: '',
@@ -190,7 +267,12 @@ export default {
         sexo: 'M',
         TipoDoc: 'D',
         FechaExp: '2000-01-01 00:00:00',
-        FechaNac: '2000-01-01 00:00:00'
+        FechaNac: '2000-01-01 00:00:00',
+        direccion: '',
+        codigoMunicipio: '',
+        codigoPostal: '',
+        pais: 'ESP',
+        correo: ''
       }
       this.addViajero(record)
         .then(response => {
@@ -235,6 +317,7 @@ export default {
   },
   mounted () {
     this.getRecords()
+    //console.log('value', this.value )
   }
 }
 </script>

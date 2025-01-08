@@ -123,9 +123,31 @@ export default {
       var record = {
         id: 0,
         nombre: 'Nuevo Cliente',
+        apellido1: '',
+        apellido2: '',
         pais: 'ESP',
         nacionalidad: 'ESP',
-        tipoDoc: 2
+        tipoDoc: 2,
+        email: '',
+        matricula: '',
+        direccion: '',
+        cpostal: '',
+        poblacion: '',
+        provincia: '',
+        telefonos: '',
+        soporteDocumento: '',
+        fechaExpedicion: '',
+        fechaNacimiento: '',
+        fechaValidez: '',
+        tipoServicioPeriodico: '',
+        precio: '',
+        tipoFacturacion: '',
+        codBanco: '',
+        codSucursal: '',
+        digitosControl: '',
+        cuentaBancaria: '',
+        user: '',
+        ts: ''
       }
       this.guardarDatosCliente(record)
         .then(response => {

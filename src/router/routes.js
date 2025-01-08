@@ -86,6 +86,12 @@ const routes = [
             props: true
           },
           {
+            path: 'ministerioMain',
+            name: 'ministerioMain',
+            component: () => import('components/MinisterioGC/ministerioMain.vue'),
+            props: true
+          },
+          {
             path: 'usuariosMain',
             name: 'usuariosMain',
             component: () => import('components/Usuarios/usuariosMain.vue'),

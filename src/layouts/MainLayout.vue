@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat @click="leftDrawerOpen = !leftDrawerOpen" round dense icon="menu" />
         <div class="items-center no-wrap absolute-center">
-          <div class="text-subtitle1">{{ nomAplicacion }}  -  v04.08.24</div>
+          <div class="text-subtitle1">{{ nomAplicacion }}  -  v08.01.2025</div>
         </div>
         <div class="q-gutter-sm q-pr-md row items-center no-wrap absolute-right">
           <q-btn round flat class="bg-red-9 text-weight-light">
@@ -140,12 +140,20 @@ export default {
             label: 'Cuadre de Caja'
           }
         },
-        {
+        /*{
           title: 'Fichero Guardia Civil',
           icon: 'shield',
           link: {
             name: 'discoGCMain',
             label: 'Fichero Guardia Civil'
+          }
+        },*/
+        {
+          title: 'Ministerio - Fichero GC',
+          icon: 'shield',
+          link: {
+            name: 'ministerioMain',
+            label: 'Ministerio - Fichero Guardia Civil'
           }
         },
         {
@@ -211,6 +219,7 @@ export default {
   },
   methods: {
     ...mapActions('tablasAux', ['loadTablasAux']),
+    ...mapActions('ministerioGC', ['comboListaMunicipios', 'comboListaPaises']),
     ...mapActions('tabs', ['addTab']),
     ...mapActions('clientes', ['comboListaClientes']),
     ...mapActions('login', ['desconectarLogin']),
@@ -227,6 +236,8 @@ export default {
   },
   mounted () {
     this.loadTablasAux()
+    this.comboListaMunicipios()
+    this.comboListaPaises()
     this.comboListaClientes()
     this.loadListaServiciosMut()
   }

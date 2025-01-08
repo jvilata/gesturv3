@@ -73,7 +73,7 @@ export default {
       }
 
       var nomFile = this.regTipo1.nomArchivo
-      this.$axios.post('guardiac/bd_guardiac.php/generarArchivoGC', formData, { responseType: 'blob' })
+      return this.$axios.post('guardiac/bd_guardiac.php/generarArchivoGC', formData, { responseType: 'blob', withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'} })
         .then(function (response) {
           if (window.cordova === undefined) { // desktop
             const url = window.URL.createObjectURL(new Blob([response.data], { type: response.data.type }))

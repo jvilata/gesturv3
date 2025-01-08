@@ -259,7 +259,7 @@ export default {
         formData.append(key, paramRecord[key])
       }
       var nomFile = paramRecord.nompdf
-      this.$axios.post('gastos/bd_gastos.php/exportarGastosFilter', formData, { responseType: 'blob' })
+      return this.$axios.post('gastos/bd_gastos.php/exportarGastosFilter', formData, { responseType: 'blob',  withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}} )
         .then(function (response) {
           if (window.cordova === undefined) { // desktop
             const url = window.URL.createObjectURL(new Blob([response.data], { type: response.data.type }))

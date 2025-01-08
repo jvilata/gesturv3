@@ -229,6 +229,7 @@ export default {
   }
 }
 </script>
+
 <style lang="sass">
 .facturasFormLineas-header-table
   .q-table__top,

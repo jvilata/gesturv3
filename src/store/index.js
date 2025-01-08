@@ -13,6 +13,7 @@ import facturas from './store-facturas'
 import gastos from './store-gastos'
 import cuadrecaja from './store-cuadrecaja'
 import guardiaC from './store-guardiaC'
+import ministerioGC from './store-ministerioGC'
 import usuarios from './store-usuarios'
 import viajeros from './store-viajeros'
 import prereservas from './store-prereservas'
@@ -39,6 +40,7 @@ export default store(function (/* { ssrContext } */) {
       gastos,
       cuadrecaja,
       guardiaC,
+      ministerioGC,
       usuarios,
       viajeros,
       prereservas

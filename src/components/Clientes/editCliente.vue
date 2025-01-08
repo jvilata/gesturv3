@@ -29,10 +29,50 @@
         </div>
         <div class="row q-mb-sm">
           <q-input outlined autogrow clearable label="Dirección" v-model="cliente.direccion" class="col-xs-12 col-sm-8"/>
-          <q-input outlined autogrow clearable label="Población" v-model="cliente.poblacion" class="col-xs-8 col-sm-4"/>
+          <!--<q-input outlined autogrow clearable label="Población" v-model="cliente.poblacion" class="col-xs-8 col-sm-4"/>-->
           <q-input outlined autogrow clearable label="C.Postal" v-model="cliente.cpostal" class="col-xs-4 col-sm-2"/>
           <q-input outlined autogrow clearable label="Provincia" v-model="cliente.provincia" class="col-xs-8 col-sm-6"/>
-          <q-input outlined autogrow clearable label="País" v-model="cliente.pais" class="col-xs-4 col-sm-4"/>
+            <q-select
+            class="col-xs-5 col-sm-2"
+            label="Poblacion (cod.Municipio)"
+            stack-label
+            clearable
+            outlined
+            v-model="cliente.codigoMunicipio"
+            :options="listaMunicipiosFilter"
+            map-options
+            option-value="codigoMunicipio"
+            option-label="nombreMunicipio"
+            emit-value
+            @filter="filterMunicipios"
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="0"
+            use-chips
+          />
+
+          <q-input outlined  clearable label="País"  class="col-xs-4 col-sm-4"/>
+          <q-select
+            class="col-xs-4 col-sm-4"
+            outlined
+            autogrow
+            stack-label
+            clearable
+            label="País Residencia"
+            v-model="cliente.pais"   
+            :options="listaPaisesFilter"
+            map-options
+            option-value="codigoPais"
+            option-label="nombrePais"
+            emit-value
+            @filter="filterPaises"
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="0"
+            use-chips
+              />
         </div>
         <div class="row q-mb-sm">
           <q-input outlined clearable label="Teléfonos" v-model="cliente.telefonos" class="col-xs-12 col-sm-12"/>
@@ -52,9 +92,28 @@
           emit-value
         />
           <q-input outlined clearable label="DNI/Pasaporte" v-model="cliente.nroDoc" class="col-xs-7 col-sm-4"/>
+          <q-input outlined clearable label="Soporte Documento" v-model="cliente.soporteDocumento" class="col-xs-7 col-sm-4"/>
           <q-input label="Fecha Nacimiento" class="col-xs-7 col-sm-3" clearable outlined stack-label
             v-model="cliente.fechaNacimiento" type="date"/>
-          <q-input outlined clearable label="Nacionalidad" v-model="cliente.nacionalidad" class="col-xs-5 col-sm-3" />
+          <q-select
+            class="col-xs-5 col-sm-3"
+            outlined
+            autogrow
+            stack-label
+            clearable
+            label="Nacionalidad"
+            v-model="cliente.nacionalidad"   
+            :options="listaPaisesFilter"
+            map-options
+            option-value="codigoPais"
+            option-label="nombrePais"
+            emit-value
+            @filter="filterPaises"
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="0"
+            />
         </div>
         <div class="row q-mb-sm">
           <q-input label="Fecha Expedición" class="col-xs-6 col-sm-6" clearable outlined stack-label
@@ -142,19 +201,36 @@ export default {
       refresh: 0,
       hasChanges: false,
       listaTipoServFilter: this.listaTipoServ,
-      listaTipoFactFilter: this.listaTipoFact
+      listaTipoFactFilter: this.listaTipoFact,
+      listaMunicipiosFilter: this.listaMunicipios,
+      listaPaisesFilter: this.listaPaises
     }
   },
   computed: {
     ...mapState('login', ['user']),
     ...mapState('tabs', ['tabs']),
     ...mapState('tablasAux', ['listaTipoDoc', 'listaTipoFact', 'listaTipoServ']),
-    ...mapState('servicios', ['listaServiciosPeriodicos'])
+    ...mapState('servicios', ['listaServiciosPeriodicos']),
+    ...mapState('ministerioGC', ['listaMunicipios', 'listaPaises'])
+    
+
   },
   methods: {
     ...mapActions('login', ['desconectarLogin']),
     ...mapActions('clientes', ['loadDetallecliente', 'guardarDatosCliente', 'comboListaClientes']),
     ...mapActions('tabs', ['addTab']),
+    filterMunicipios (val, update, abort) {
+      update(() => {
+        const needle = val.toLowerCase()
+        this.listaMunicipiosFilter = this.listaMunicipios.filter(v => v.nombreMunicipio.toLowerCase().indexOf(needle) > -1)
+      })
+    },
+    filterPaises (val, update, abort) {
+      update(() => {
+        const needle = val.toLowerCase()
+        this.listaPaisesFilter = this.listaPaises.filter(v => v.nombrePais.toLowerCase().indexOf(needle) > -1)
+      })
+    },
     formatDate (pdate) {
       return date.formatDate(pdate, 'DD-MM-YYYY')
     },
@@ -191,6 +267,7 @@ export default {
     }
   },
   mounted () {
+    console.log('lista', this.listaMunicipios)
     // loadDetalleCliente se le tiene que pasar el idCliente (contenido en keyValue)
     this.loadDetallecliente(this.tabs[this.id].meta.value.id)
       .then(response => {

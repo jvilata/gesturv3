@@ -188,7 +188,7 @@ export default {
         for (var key in paramRecord) {
           formData.append(key, paramRecord[key])
         }
-        this.$axios.post('estancias/pdf_invoice.php/', formData, { responseType: (aDisco === 0 ? 'blob' : '') })
+        this.$axios.post('estancias/pdf_invoice.php/', formData, { responseType: (aDisco === 0 ? 'blob' : ''), withCredentials: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}  })
           .then(function (response) {
             if (aDisco === 2) resolve(response)
             else {
