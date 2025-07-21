@@ -77,8 +77,11 @@
                 <q-select
                   v-if="['TipoDoc'].includes(col.name)"
                   outlined
+                  stack-label
                   v-model="scope.value"
-                  :options="tipoDocList"
+                  :options="listaTipoDoc"
+                  option-value="codElemento"
+                  option-label="valor1"
                   emit-value
                   map-options
                 />
@@ -216,14 +219,12 @@
         sexoList: [
           'M', 'H', 'O'
         ],
-        tipoDocList: [
-          'D', 'P', 'C'
-        ],
         refresh: 0
       }
     },
     computed: {
       ...mapState('login', ['user']),
+      ...mapState('tablasAux', ['listaTipoDoc']),
       ...mapState('ministerioGC', ['listaMunicipios', 'listaPaises'])
     },
     methods: {
@@ -254,7 +255,7 @@
           pasaporte: '',
           soporteDocumento: '',
           sexo: 'H',
-          TipoDoc: 'D',
+          TipoDoc: 2,
           FechaEntrada: date.formatDate(new Date(), 'YYYY-MM-DD 00:00:00'),
           fechaSalida: date.formatDate(new Date(), 'YYYY-MM-DD 00:00:00'),
           PaisNac: 'ESP',

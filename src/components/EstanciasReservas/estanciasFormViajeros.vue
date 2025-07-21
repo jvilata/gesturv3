@@ -54,11 +54,20 @@
               v-slot="scope"
               @save="updateRecord(props.row)" >
               <q-input
-                v-if="['Nombre', 'PrimerApellido', 'SegundoApellido', 'dni', 'pasaporte', 'soporteDocumento', 'direccion', 'codigoPostal', 'correo'].includes(col.name)"
+                v-if="['Nombre', 'PrimerApellido', 'SegundoApellido', 'dni', 'pasaporte', 'soporteDocumento', 'direccion', 'codigoPostal'].includes(col.name)"
                 type="text"
                 v-model="scope.value"
                 dense
                 autofocus/>
+              <!--'correo'-->
+              <q-input
+                v-if="['correo'].includes(col.name)"
+                type="text"
+                v-model="scope.value"
+                dense
+                autofocus
+                :rules="emailRules"
+                />
               <q-input
                 v-if="['FechaEntrada', 'FechaExp', 'FechaNac', 'fechaSalida'].includes(col.name)"
                 type="date"
@@ -77,8 +86,11 @@
               <q-select
                 v-if="['TipoDoc'].includes(col.name)"
                 outlined
+                stack-label
                 v-model="scope.value"
-                :options="tipoDocList"
+                :options="listaTipoDoc"
+                option-value="codElemento"
+                option-label="valor1"
                 emit-value
                 map-options
               />
@@ -108,10 +120,10 @@
                 outlined
                 v-model="scope.value"
                 :options="listaPaisesFilter"
-                map-options
                 option-value="codigoPais"
                 option-label="nombrePais"
                 emit-value
+                map-options
                 @filter="filterPaises"
                 use-input
                 hide-selected
@@ -126,16 +138,17 @@
                 outlined
                 v-model="scope.value"
                 :options="listaMunicipiosFilter"
-                map-options
                 option-value="codigoMunicipio"
                 option-label="nombreMunicipio"
                 emit-value
+                map-options
                 @filter="filterMunicipios"
                 use-input
                 hide-selected
                 fill-input
                 input-debounce="0"
               />
+              
             </q-popup-edit>
           </q-td>
         </q-tr>
@@ -187,8 +200,13 @@ export default {
       registrosSeleccionados: [],
       response: 0,
       registroEditado: {},
-      listaMunicipiosFilter: this.listaMunicipios,
-      listaPaisesFilter: this.listaPaises,
+      listaMunicipiosFilter: [],
+      listaPaisesFilter: [],
+      // Definimos las reglas de validación para el email
+      emailRules: [
+        val => (val && val.length > 0) || 'El email es obligatorio',
+        val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Introduce un formato de email válido'
+      ],
       columns: [
         { name: 'id', label: 'ID', align: 'center', field: 'id', sortable: true },
         { name: 'Nombre', align: 'left', label: 'nombre', field: 'Nombre', sortable: true },
@@ -205,7 +223,7 @@ export default {
         { name: 'FechaNac', align: 'left', label: 'Fecha Nac.', field: 'FechaNac', sortable: true, format: val => { var res = date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'DD-MM-YYYY'); return ((res === '30-11-1899') || (res === '31-12-1899') ? '' : res) } },
         { name: 'paisNac', align: 'left', label: 'paisNac', field: 'PaisNac', sortable: true },
         { name: 'direccion', align: 'left', label: 'direccion', field: 'direccion', sortable: true },
-        { name: 'codigoMunicipio', align: 'left', label: 'Cod. Municipio', field: 'codigoMunicipio', sortable: true },
+        { name: 'codigoMunicipio', align: 'left', label: 'Cod. Municipio', field: row => { const municipio = this.listaMunicipiosFilter.find(v => v.codigoMunicipio === row.codigoMunicipio); return municipio ? municipio.nombreMunicipio : ''; }, sortable: true},
         { name: 'codigoPostal', align: 'left', label: 'Cod. Postal', field: 'codigoPostal', sortable: true },
         { name: 'pais', align: 'left', label: 'País', field: 'pais', sortable: true },
         { name: 'correo', align: 'left', label: 'Correo', field: 'correo', sortable: true }
@@ -215,14 +233,13 @@ export default {
       sexoList: [
         'M', 'H', 'O'
       ],
-      tipoDocList: [
-        'D', 'P', 'C'
-      ],
+      
       refresh: 0
     }
   },
   computed: {
     ...mapState('login', ['user']),
+    ...mapState('tablasAux', ['listaTipoDoc']),
     ...mapState('ministerioGC', ['listaMunicipios', 'listaPaises'])
   },
   methods: {
@@ -248,6 +265,7 @@ export default {
       this.findViajerosFilter(objFilter)
         .then(response => {
           this.listaRegTipo2 = response.data
+          console.log(this.listaRegTipo2)
         })
         .catch(error => {
           this.$q.dialog({ title: 'Error', message: error })
@@ -265,7 +283,7 @@ export default {
         PaisNac: 'ESP',
         idEstancia: this.value.id,
         sexo: 'M',
-        TipoDoc: 'D',
+        TipoDoc: 2,
         FechaExp: '2000-01-01 00:00:00',
         FechaNac: '2000-01-01 00:00:00',
         direccion: '',
@@ -316,6 +334,9 @@ export default {
     }
   },
   mounted () {
+    this.listaMunicipiosFilter = this.listaMunicipios.slice()
+    
+    this.listaPaisesFilter = this.listaPaises.slice()
     this.getRecords()
     //console.log('value', this.value )
   }

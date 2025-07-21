@@ -177,9 +177,11 @@ export default {
     }
   },
   mounted () {
+
     this.listaClientesFilter = this.listaClientes
     this.listaTipoEstanciaFilter = this.listaTipoEstancia
     this.recordToSubmit = Object.assign({}, this.value)
+    console.log('record', this.recordToSubmit)
     if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)
     if (this.recordToSubmit.fechaSalida) this.recordToSubmit.fechaSalida = this.recordToSubmit.fechaSalida.substring(0,10)
     if (this.recordToSubmit.FechaFactura) this.recordToSubmit.FechaFactura = this.recordToSubmit.FechaFactura.substring(0,10)

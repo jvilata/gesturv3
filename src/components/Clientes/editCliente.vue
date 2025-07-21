@@ -24,7 +24,16 @@
           <q-input autogrow outlined clearable label="Segundo Apellido" v-model="cliente.apellido2" class="col-xs-4 col-sm-4"/>
         </div>
         <div class="row q-mb-sm">
-          <q-input outlined autogrow clearable label="Email" v-model="cliente.email" class="col-xs-12 col-sm-6" />
+        <!-- <q-input outlined autogrow clearable label="Email" v-model="cliente.email" class="col-xs-12 col-sm-6" />-->
+         <q-input
+            outlined
+            autogrow
+            clearable
+            label="Email"
+            v-model="cliente.email"
+            class="col-xs-12 col-sm-6"
+            :rules="emailRules"
+          />
           <q-input outlined autogrow clearable label="Matrícula" v-model="cliente.matricula" class="col-xs-12 col-sm-3"/>
           <q-input outlined clearable label="Teléfonos" v-model="cliente.telefonos" class="col-xs-12 col-sm-3"/>
         </div>
@@ -34,23 +43,22 @@
           <q-input outlined autogrow clearable label="C.Postal" v-model="cliente.cpostal" class="col-xs-4 col-sm-4"/>
           <q-input outlined autogrow clearable label="Provincia" v-model="cliente.provincia" class="col-xs-8 col-sm-4"/>
             <q-select
+            outlined
+            clearable
             class="col-xs-6 col-sm-4"
             label="Poblacion (cod.Municipio)"
             stack-label
-            clearable
-            outlined
             v-model="cliente.codigoMunicipio"
             :options="listaMunicipiosFilter"
-            map-options
             option-value="codigoMunicipio"
-            option-label="nombreMunicipio"
+            option-label="nombreMunicipio" 
             emit-value
-            @filter="filterMunicipios"
+            map-options
+            @filter="filterMunicipios" 
             use-input
             hide-selected
             fill-input
             input-debounce="0"
-            use-chips
           />
 
          
@@ -63,16 +71,15 @@
             label="País Residencia"
             v-model="cliente.pais"   
             :options="listaPaisesFilter"
-            map-options
             option-value="codigoPais"
             option-label="nombrePais"
             emit-value
+            map-options
             @filter="filterPaises"
             use-input
             hide-selected
             fill-input
             input-debounce="0"
-            use-chips
               />
         </div>
       
@@ -89,7 +96,7 @@
           option-value="codElemento"
           option-label="valor1"
           emit-value
-        />
+         />
           <q-input outlined clearable label="DNI/Pasaporte" v-model="cliente.nroDoc" class="col-xs-7 col-sm-4"/>
           
           <q-input outlined clearable label="Soporte Documento" v-model="cliente.soporteDocumento" class="col-xs-6 col-sm-4"/>
@@ -123,10 +130,6 @@
 
             <q-input label="Fecha Validez" class="col-xs-6 col-sm-6" clearable outlined stack-label
             v-model="cliente.fechaValidez" type="date"/>
-        </div>
-        <div class="row q-mb-sm">
-          
-          
         </div>
         <div class="row q-mb-sm">
           <q-expansion-item
@@ -201,15 +204,22 @@ export default {
     return {
       cliente: {
         fechaValidez: '',
-        fechaNacimiento: ''
+        fechaNacimiento: '',
+        email: '' // Asegúrate de que email esté inicializado para que el watcher lo detecte
+
       },
       colorBotonSave: 'primary',
       refresh: 0,
       hasChanges: false,
       listaTipoServFilter: this.listaTipoServ,
       listaTipoFactFilter: this.listaTipoFact,
-      listaMunicipiosFilter: this.listaMunicipios,
-      listaPaisesFilter: this.listaPaises
+      listaMunicipiosFilter: [],
+      listaPaisesFilter: [],
+      // Definimos las reglas de validación para el email
+      emailRules: [
+        val => (val && val.length > 0) || 'El email es obligatorio',
+        val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Introduce un formato de email válido'
+      ]
     }
   },
   computed: {
@@ -228,6 +238,7 @@ export default {
     filterMunicipios (val, update, abort) {
       update(() => {
         const needle = val.toLowerCase()
+        console.log('si,hola',needle)
         this.listaMunicipiosFilter = this.listaMunicipios.filter(v => v.nombreMunicipio.toLowerCase().indexOf(needle) > -1)
       })
     },
@@ -273,7 +284,8 @@ export default {
     }
   },
   mounted () {
-    console.log('lista', this.listaMunicipios)
+    this.listaMunicipiosFilter = this.listaMunicipios.slice()
+    this.listaPaisesFilter = this.listaPaises.slice()
     // loadDetalleCliente se le tiene que pasar el idCliente (contenido en keyValue)
     this.loadDetallecliente(this.tabs[this.id].meta.value.id)
       .then(response => {
@@ -281,7 +293,9 @@ export default {
         this.cliente.fechaNacimiento = this.cliente.fechaNacimiento.substring(0,10)
         this.cliente.fechaValidez = this.cliente.fechaValidez.substring(0,10)
         this.cliente.fechaExpedicion = this.cliente.fechaExpedicion.substring(0,10)
-        setTimeout(() => { this.colorBotonSave = 'primary'; this.hasChanges = false }, 50) // dejo pasar un poco porque en el render se modifica el registro
+   
+          setTimeout(() => { this.colorBotonSave = 'primary'; this.hasChanges = false }, 50) // dejo pasar un poco porque en el render se modifica el registro
+     
       })
       .catch(error => {
         this.$q.dialog({ title: 'Error', message: error.message })
