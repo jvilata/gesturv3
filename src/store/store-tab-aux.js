@@ -8,7 +8,9 @@ const state = {
   listaTipoEstancia: [],
   listaTipoTarifa: [],
   listaTiposGasto: [],
-  datosEstablecimiento: []
+  datosEstablecimiento: [],
+  listaTipoFacturaEmitida: [],
+  listaRegistro: []
 }
 
 const mutations = {
@@ -38,6 +40,12 @@ const mutations = {
       if (element.codElemento === '4') { state.datosEstablecimiento.nomEstablecimiento = element.valor1 }
     })
     state.datosEstablecimiento.nomArchivo = state.datosEstablecimiento.path + state.datosEstablecimiento.codEstablecimiento + state.datosEstablecimiento.contador
+  },
+  loadTipoFacturaEmitida (state, lista) {
+    state.listaTipoFacturaEmitida = lista
+  },
+  loadlistaRegistro (state, lista) {
+    state.listaRegistro = lista
   }
 }
 
@@ -50,6 +58,8 @@ const actions = {
     this.dispatch('tablasAux/loadTablaAux', { codTabla: 3, mutation: 'loadTipoTarifa' })
     this.dispatch('tablasAux/loadTablaAux', { codTabla: 8, mutation: 'loadTiposGasto' })
     this.dispatch('tablasAux/loadTablaAux', { codTabla: 5, mutation: 'loadDatosEstablecimiento' })
+    this.dispatch('tablasAux/loadTablaAux', { codTabla: 9, mutation: 'loadTipoFacturaEmitida' })
+    this.dispatch('tablasAux/loadTablaAux', { codTabla: 11, mutation: 'loadlistaRegistro' })
   },
   loadTablaAux ({ commit }, tabAux) { // tabAux: { codTabla: x, mutation: 'mutation' }
     axiosInstance.get(`tablaAuxiliar/bd_tablaAuxiliar.php/findTablaAuxFilter?codTabla=${tabAux.codTabla}`, {}, { withCredentials: true }) // tipo acciones

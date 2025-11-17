@@ -65,7 +65,7 @@
           default-opened
           header-class="bg-brown-1 text-grey-8"
         >
-          <estanciasFormLineas :key="refresh" :value="recordToSubmit" @calculaTotalesEst="calculaTotalesEst"/>
+          <estanciasFormLineas :key="refresh" :value="recordToSubmit" @calculaTotalesEst="calculaTotalesEst"  :disable="isFacturaGenerada"/>
         </q-expansion-item>
         <q-separator />
         <q-expansion-item
@@ -76,7 +76,7 @@
           default-opened
           header-class="bg-brown-1 text-grey-8"
         >
-          <estanciasFormViajeros :key="refresh" :value="recordToSubmit"/>
+          <estanciasFormViajeros :key="refresh" :value="recordToSubmit"  :disable="isFacturaGenerada"/>
         </q-expansion-item>
       </q-list>
     </q-card>
@@ -104,7 +104,12 @@ export default {
   },
   computed: {
     ...mapState('tabs', ['tabs']),
-    ...mapState('login', ['user']) // importo state.user desde store-login
+    ...mapState('login', ['user']), // importo state.user desde store-login
+    isFacturaGenerada() {
+        // Normalizamos el valor para considerar 0, '0', '', y null como "no generada"
+        const nroFact = this.recordToSubmit.NroFactura;
+        return (nroFact !== null && nroFact !== 0 && nroFact !== '0' && nroFact !== '');
+    }
   },
   methods: {
     ...mapActions('estancias', ['addEstancia', 'findEstancia']),
@@ -122,6 +127,7 @@ export default {
           Object.assign(this.recordToSubmit, response.data[0])
           setTimeout(() => { this.primeraVez = false; this.colorBotonSave = 'primary'; this.hasChanges = false }, 100) // dejo pasar un poco porque en el render se modifica el registro
           this.refresh++ // refresca datos cabecera
+          console.log('regs form', this.recordToSubmit.NroFactura)
         })
         .catch(error => {
           this.$q.dialog({ title: 'Error', message: error })

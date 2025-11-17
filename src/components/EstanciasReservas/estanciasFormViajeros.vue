@@ -265,7 +265,6 @@ export default {
       this.findViajerosFilter(objFilter)
         .then(response => {
           this.listaRegTipo2 = response.data
-          console.log(this.listaRegTipo2)
         })
         .catch(error => {
           this.$q.dialog({ title: 'Error', message: error })
@@ -322,7 +321,6 @@ export default {
       })
     },
     updateRecord (record) { // Volvemos a llamar a addServicios con el contenido de props.row
-      console.log('upd', record)
       this.addViajero(record)
         .then(response => {
           this.addViajero(record)

@@ -229,6 +229,10 @@ export default {
     addRecord () { // llamada store vuex
       var record = {
         tipoEstancia: 1,
+        estadoAeat: 'PENDIENTE',
+        EmitidaPorTerceroODestinatario: 'SELF',
+        RegistroFactura: 'RegistroAlta',
+        TipoFactura: 'F1',
         fechaEntrada: date.formatDate(new Date(), 'YYYY-MM-DD'),
         fechaSalida: date.addToDate(new Date(), { days: 1 }),
         tipoTarifa: 1

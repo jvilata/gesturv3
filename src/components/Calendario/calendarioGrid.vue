@@ -116,7 +116,7 @@ export default {
     right (str, chr) {
       return str.substr(str.length - chr, str.length)
     },
-    cargaColumns () {
+    cargaColumns () { //en vidawm: cargar el año actual + 5 siguientes
       var dm = this.daysInMonth(this.filterRecord.mes, this.filterRecord.anyo)
       this.columns = [
         { name: 'descServicio', align: 'left', label: 'descServicio', field: 'descServicio', style: 'width: 50px; whiteSpace: normal; font-size: 80%' }
@@ -142,10 +142,10 @@ export default {
           this.$q.dialog({ title: 'Error', message: error.message })
         })
     },
-    getReservas () {
+    getReservas () { //en vidawm: getCompromisos()
       this.loadPrereservas(this.filterRecord)
         .then(response => {
-          this.listaReservas = response.data
+          this.listaReservas = response.data //this.listaComrpomisos
           this.getRecords()
         })
         .catch(error => {

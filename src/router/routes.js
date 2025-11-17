@@ -37,6 +37,20 @@ const routes = [
             component: () => import('components/EstanciasReservas/estanciasForm.vue'),
             props: true
           },
+          { path: 'FacturasAEAT', 
+            name: 'FacturasAEAT', 
+            component: () => import('components/FacturasAEAT/facturasMainAEAT.vue'), 
+            props: true
+           },
+           {
+            path: 'facturasFormMainAEAT/:id',
+            name: 'facturasFormMainAEAT',
+            component: () => import('components/FacturasAEAT/facturasFormMainAEAT.vue'),
+            props: true,
+            children: [
+              { path: 'facturasFormAEAT', name: 'facturasFormAEAT', component: () => import('components/FacturasAEAT/facturasFormAEAT.vue'), props: true }
+            ]
+          },
           {
             path: 'dashboard',
             name: 'dashboard',

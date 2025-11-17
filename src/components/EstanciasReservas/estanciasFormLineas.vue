@@ -146,6 +146,7 @@ export default {
       this.findLinEstancias(objFilter)
         .then(response => {
           this.registrosSeleccionados = response.data
+          
         })
         .catch(error => {
           this.$q.dialog({ title: 'Error', message: error })

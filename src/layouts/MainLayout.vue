@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat @click="leftDrawerOpen = !leftDrawerOpen" round dense icon="menu" />
         <div class="items-center no-wrap absolute-center">
-          <div class="text-subtitle1">{{ nomAplicacion }}  -  v21.07.2025</div>
+          <div class="text-subtitle1">{{ nomAplicacion }}  -  v17.11.2025</div>
         </div>
         <div class="q-gutter-sm q-pr-md row items-center no-wrap absolute-right">
           <q-btn round flat class="bg-red-9 text-weight-light">
@@ -140,14 +140,14 @@ export default {
             label: 'Cuadre de Caja'
           }
         },
-        {
+      /*  {
           title: 'Fichero Guardia Civil',
           icon: 'shield',
           link: {
             name: 'discoGCMain',
             label: 'Fichero Guardia Civil'
           }
-        },
+        },*/
         {
           title: '(NUEVO) Ministerio - Fichero GC',
           icon: 'shield',
@@ -182,6 +182,15 @@ export default {
         }
       ],
       otros: [
+        {
+          title: 'Facturas - SIF AEAT',
+          rol: '0',
+          icon: 'description',
+          link: {
+            name: 'FacturasAEAT',
+            label: 'Facturas ENVIADAS AEAT'
+          }
+        },
         {
           title: 'Tablas Auxiliares',
           icon: 'chat',

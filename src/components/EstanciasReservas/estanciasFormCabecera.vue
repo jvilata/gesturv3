@@ -2,9 +2,10 @@
   <template>
   <q-card class="q-pt-none q-pl-xs q-pr-xs">
       <div class="row">
-        <q-input class="col-xs-6 col-sm-1" readonly outlined label="ID Estancia" stack-label v-model="recordToSubmit.id" />
+        <q-input v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'" class="col-xs-5 col-sm-1" readonly outlined label="ID Estancia" stack-label v-model="recordToSubmit.id" />
           <q-select
-            class="col-xs-6 col-sm-3"
+            v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'"
+            class="col-xs-7 col-sm-2"
             outlined
             clearable
             label="Tipo Estancia"
@@ -21,11 +22,14 @@
             fill-input
             input-debounce="0"
           />
+          <q-input class="col-xs-12 col-sm-2" readonly outlined label="Estado SIF - AEAT" stack-label v-model="recordToSubmit.estadoAeat" />
+
         <q-select
-          class="col-xs-12 col-sm-8"
+          class="col-xs-12 col-sm-7"
           outlined
           label="Cliente"
           stack-label
+          :style="nifSelectStyle"
           v-model="recordToSubmit.idCliente"
           :options="listaClientesFilter"
           option-value="id"
@@ -37,26 +41,12 @@
           hide-selected
           fill-input
           input-debounce="0"
+          @blur="validacionCliente(recordToSubmit)"
+          :readonly="isFacturaGenerada"
         />
-          <!-- <q-select
-          class="col-xs-6 col-sm-3"
-          outlined
-          clearable
-          label="Tipo Tarifa"
-          stack-label
-          v-model="recordToSubmit.tipoTarifa"
-          :options="listaTipoTarifa"
-          option-value="codElemento"
-          option-label="valor1"
-          emit-value
-          map-options
-          use-input
-          hide-selected
-          fill-input
-          input-debounce="0"
-        /> -->
+         
       </div>
-      <div class="row">
+      <div class="row" v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'">
         <q-input
           label="Fecha Entrada"
           class="col-xs-6 col-sm-3"
@@ -65,6 +55,7 @@
           stack-label
           v-model="recordToSubmit.fechaEntrada"
           type="date"
+          :readonly="isFacturaGenerada"
         />
         <q-input
           label="Fecha Salida"
@@ -74,23 +65,24 @@
           stack-label
           v-model="recordToSubmit.fechaSalida"
           type="date"
+          :readonly="isFacturaGenerada"
         />
-        <q-input class="col-xs-4 col-sm-2"  outlined label="N.Viajeros" stack-label v-model="recordToSubmit.numViajeros" />
-        <q-input class="col-xs-8 col-sm-4"  outlined label="Observaciones" stack-label v-model="recordToSubmit.observaciones" />
+        <q-input class="col-xs-4 col-sm-2"  outlined label="N.Viajeros" stack-label v-model="recordToSubmit.numViajeros" :readonly="isFacturaGenerada"/>
+        <q-input class="col-xs-8 col-sm-4"  outlined label="Observaciones" stack-label v-model="recordToSubmit.observaciones" :readonly="isFacturaGenerada" />
       </div>
-      <div class="row q-mt-lg">
+      <div class="row q-mt-lg" v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'">
         <q-input class="col-xs-4 col-sm-2" outlined readonly label="Base" stack-label v-model="recordToSubmit.base" />
-        <q-input class="col-xs-4 col-sm-1" outlined label="%Retención" stack-label v-model="recordToSubmit.porRetencion" @blur="$emit('calculaTotalesEst', recordToSubmit)"/>
+        <q-input class="col-xs-4 col-sm-1" outlined label="%Retención" stack-label v-model="recordToSubmit.porRetencion" @blur="$emit('calculaTotalesEst', recordToSubmit)" :readonly="isFacturaGenerada"/>
         <q-input class="col-xs-4 col-sm-1" outlined readonly label="Importe retención" stack-label v-model="recordToSubmit.Retencion"/>
         <q-input class="col-xs-6 col-sm-2" outlined readonly label="Total IVA" stack-label v-model="recordToSubmit.totalIva"/>
         <q-input class="col-xs-6 col-sm-2" outlined readonly label="Total Estancia" stack-label v-model="recordToSubmit.totalEstancia" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="Fianza" stack-label v-model="recordToSubmit.Fianza" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="En efectivo" stack-label v-model="recordToSubmit.ACuenta" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="Transferencia" stack-label v-model="recordToSubmit.PorBanco" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="TPV" stack-label v-model="recordToSubmit.PorDatafono" />
+        <q-input class="col-xs-3 col-sm-1" outlined label="Fianza" stack-label v-model="recordToSubmit.Fianza" :readonly="isFacturaGenerada" />
+        <q-input class="col-xs-3 col-sm-1" outlined label="En efectivo" stack-label v-model="recordToSubmit.ACuenta" :readonly="isFacturaGenerada"/>
+        <q-input class="col-xs-3 col-sm-1" outlined label="Transferencia" stack-label v-model="recordToSubmit.PorBanco" :readonly="isFacturaGenerada" />
+        <q-input class="col-xs-3 col-sm-1" outlined label="TPV" stack-label v-model="recordToSubmit.PorDatafono" :readonly="isFacturaGenerada"/>
       </div>
-      <div class="row q-mt-sm">
-        <q-btn outline class="col-xs-12 col-sm-2" color="primary" label="Generar Factura" @click="rellenarDatosFact" />
+      <div class="row q-mt-sm" >
+        <q-btn outline class="col-xs-12 col-sm-2" color="primary" label="Generar Factura" @click="validacionDatosFactura(recordToSubmit)" /> <!--:disable="isFacturaGenerada" -->
         <q-input
             label="Fecha Factura"
             class="col-xs-6 col-sm-2"
@@ -101,8 +93,73 @@
             type="date"
             :readonly="disableNroFactura"
           />
-        <q-input class="col-xs-6 col-sm-2" outlined label="Número Factura" stack-label v-model="recordToSubmit.NroFactura" 
+        <q-input v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'" class="col-xs-6 col-sm-1" outlined label="Número Factura" stack-label v-model="recordToSubmit.NroFactura" 
             :readonly="disableNroFactura" />
+        
+        <div class="col"></div>
+
+        <q-select
+          class="col-xs-12 col-sm-1"
+          outlined
+          label="Tipo Registro"
+          stack-label
+          v-model="recordToSubmit.RegistroFactura"
+          :options="listaRegistro"
+          option-value="codElemento"
+          option-label="valor1"
+          map-options
+          emit-value
+          :readonly="isFacturaGenerada"
+        />
+
+        <q-select
+          v-if="recordToSubmit.RegistroFactura !== 'RegistroAlta'"
+          class="col-xs-12 col-sm-2"
+          outlined
+          label="Nro Factura Anular"
+          stack-label
+          v-model="recordToSubmit.NroFactura"
+          :options="listaFactEmitidasFilter"
+          option-value="nroFactura"
+          option-label="nroFactura"
+          emit-value
+          map-options
+          @filter="filterEstanciasFactEmitidas"
+          use-input
+          hide-selected
+          fill-input
+          input-debounce="0"
+          :readonly="isFacturaGenerada"
+           />
+
+         
+        <q-select
+          v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'"
+          class="col-xs-12 col-sm-2 "
+          outlined
+          label="Tipo Factura"
+          stack-label
+          v-model="recordToSubmit.TipoFactura"
+          :options="listaTipoFacturaEmitida"
+          option-value="codElemento"
+          option-label="valor1"
+          map-options
+          emit-value
+          :readonly="isFacturaGenerada"
+        />
+
+        <q-select
+          v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'"
+          class="col-xs-12 col-sm-1"
+          outlined
+          label="Emisor Factura:"
+          stack-label
+          v-model="recordToSubmit.EmitidaPorTerceroODestinatario"
+          :options="listaEmitidaPor"
+          emit-value
+          :readonly="isFacturaGenerada"
+        />
+        
       </div>
   </q-card>
 </template>
@@ -110,6 +167,7 @@
 <script>
 import { mapState, mapActions } from 'vuex'
 import { date } from 'quasar'
+import { headerFormData } from 'boot/axios.js'
 
 export default {
   props: ['value'], // value es el objeto con los campos de filtro que le pasa accionesMain con v-model
@@ -118,13 +176,50 @@ export default {
       listaClientesFilter: this.listaClientes,
       listaTipoEstanciaFilter: this.listaTipoEstancia,
       recordToSubmit: {},
-      disableNroFactura: false
+      disableNroFactura: false,
+      nifValidationClass: '', // Inicialmente vacía
+      validacionCli: '',
+      pais: '',
+      tipoDoc: '',
+      descripcion: '',
+      objRecord: {},
+      validacionFact: '',
+      listaEmitidaPor: ['SELF', 'Destinatario', 'Tercero'],
+      listaFactEmitidasFilter: []
+
     }
   },
   computed: {
     ...mapState('login', ['user']),
     ...mapState('clientes', ['listaClientes']),
-    ...mapState('tablasAux', ['listaTipoEstancia', 'listaTipoTarifa'])
+    ...mapState('estancias', ['listaNumFactEmitidas']), //devuelvo id de estancias
+    ...mapState('tablasAux', ['listaTipoEstancia', 'listaTipoTarifa', 'listaTipoFacturaEmitida', 'listaRegistro']),
+   // ...mapState('estancias', ['listaNumFactEmitidas']),
+
+   isFacturaGenerada() {
+        // Normalizamos el valor para considerar 0, '0', '', y null como "no generada"
+        const nroFact = this.recordToSubmit.NroFactura;
+        return (nroFact !== null && nroFact !== 0 && nroFact !== '0' && nroFact !== '');
+    },
+    
+    nifSelectStyle() {
+      // Determine the background color based on nifValidationClass
+      let bgColor = 'white'; // Default or no validation color
+      if (this.nifValidationClass === 'q-select-success') {
+        bgColor = '#e6ffe6'; // Light green
+      } else if (this.nifValidationClass === 'q-select-error') {
+        bgColor = '#ffe6e6'; // Light red
+      } else if (this.nifValidationClass === 'q-select-warning') {
+        bgColor = '#fffacd'; // Light yellow
+      }
+      // Return a style object. Quasar will interpret this and apply it correctly.
+      // For outlined fields, directly setting backgroundColor on the component often works
+      // because Quasar internally applies it to the correct child element or uses it
+      // to set its own CSS variable like --q-field-bg.
+      return {
+        backgroundColor: bgColor
+      };
+    }
   },
   methods: {
     ...mapActions('estancias', ['generarFactura', 'findEstancia']),
@@ -140,30 +235,103 @@ export default {
         this.listaTipoEstanciaFilter = this.listaTipoEstancia.filter(v => v.valor1.toLowerCase().indexOf(needle) > -1)
       })
     },
+    filterEstanciasFactEmitidas (val, update, abort) {
+      update(() => {
+        const needle = val.toLowerCase()
+        // Asegúrate de que this.listaNumFactEmitidas sea un array antes de intentar filtrar
+        // Aunque el watcher ya se encargará de esto, es una buena práctica de seguridad.
+        if (Array.isArray(this.listaNumFactEmitidas)) {
+          this.listaFactEmitidasFilter = this.listaNumFactEmitidas.filter(v => v.id.toLowerCase().indexOf(needle) > -1)
+        } else {
+          this.listaFactEmitidasFilter = []; // Si no es array, resetea a vacío
+        }
+      })
+    },
     formatDate (date1) {
       return date.formatDate(date1, 'DD/MM/YYYY')
+    },
+    validacionDatosFactura (record) {
+      this.validacionFact = ''
+      this.descripcion = ''
+      var totalIva = this.recordToSubmit.totalIva
+      var base = this.recordToSubmit.base
+      var tipoImpositivoFact = ''
+
+      if((totalIva !== "" || totalIva !== null) && (base !== "" || base !== null)) {
+        tipoImpositivoFact = parseInt((totalIva / base) * 100)
+      }
+
+      return this.validacionCliente(record) // Devuelve la promesa del final de validacionCliente
+        .then(() => {
+          // Metodo en backend para comprobar que hay datos de: base imponible, tipo imposiivo, cuota total, importe total y descripcion (ver tabla reservas)
+          return this.$axios.get(`estancias/bd_estancias.php/validoDatosFact`, { params: { id: record.id } }) //en record.id va el idEstancia
+        })  
+          .then(response => { 
+            console.log('response valido datos: ', response.data)
+                if ((response.data.descripcionCorta !== "" || response.data.descripcionCorta !== null) && (response.data.tipoImpositivo !== "" || response.data.tipoImpositivo !== null) ) {
+                  
+                  if(tipoImpositivoFact == parseInt(response.data.tipoImpositivo)) { // compruebo si es igual a la primera linea de la fact
+                    
+                       this.validacionFact = 'OK'
+                      this.descripcion = response.data.descripcionCorta
+                      //TODO OK
+                        
+                       this.rellenarDatosFact()
+                      //PARA LAS PRUEBAS - PONGO AQUI this.copiarFacturasAEAT(this.recordToSubmit), LUEGO LO TENDRE QUE QUITAR Y PONER ABAJO (rellenarDatosFact)
+                     // this.copiarFacturasAEAT(this.recordToSubmit)
+                  } else {
+                    this.validacionFact = 'ERROR'
+                    this.$q.dialog({ title: 'Aviso', message: 'No se ha generado la factura porque se tienen distintos tipos impositivos' })
+          
+
+                  } 
+                } else this.validacionFact = 'ERROR'
+                
+          })
+          .catch(error => {
+            
+            this.$q.dialog({ title: 'Error', message: error.response.data.error })
+            this.validacionFact = 'ERROR'
+            
+          })
+      
+
     },
     rellenarDatosFact () {
       // solo hay que generar factura cuando nroFactura sea cero
       if (this.recordToSubmit.NroFactura === null || this.recordToSubmit.NroFactura === '0' || this.recordToSubmit.NroFactura === 0 || this.recordToSubmit.NroFactura === '') {
-        this.generarFactura(this.recordToSubmit)
-          .then(response => {
-            // volvemos a leer la factura
-            this.findEstancia({ id: this.recordToSubmit.id })
-              .then(response => {
-                Object.assign(this.recordToSubmit, response.data[0])
-                if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)
-                if (this.recordToSubmit.fechaSalida) this.recordToSubmit.fechaSalida = this.recordToSubmit.fechaSalida.substring(0,10)
-                if (this.recordToSubmit.FechaFactura) this.recordToSubmit.FechaFactura = this.recordToSubmit.FechaFactura.substring(0,10)
+        
+        //Si todas las validaciones OK - entonces envío a AEAT
+        if(this.validacionCli === 'OK' && this.validacionFact === 'OK'){
+          this.generarFactura(this.recordToSubmit)
+            .then(response => {
+              // volvemos a leer la factura
+              this.findEstancia({ id: this.recordToSubmit.id })
+                .then(response => {
+                  Object.assign(this.recordToSubmit, response.data[0])
+                  if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)
+                  if (this.recordToSubmit.fechaSalida) this.recordToSubmit.fechaSalida = this.recordToSubmit.fechaSalida.substring(0,10)
+                  if (this.recordToSubmit.FechaFactura) this.recordToSubmit.FechaFactura = this.recordToSubmit.FechaFactura.substring(0,10)
+                    //aqui cambiamos almacenamos en facturasaeat y cambiamos estado de factura de PENDIENTE A GENERADA AEAT
+                     this.copiarFacturasAEAT(this.recordToSubmit)
+                })
+                .catch(error => {
+                  this.$q.dialog({ title: 'Error', message: error })
+                })
+            })
+            .catch(error => {
+              this.$q.dialog({ title: 'Error', message: error })
+            })
+        } else { //this.validacionCli === 'ERROR' por algun motivo: el cliente no tiene nombre, dni, tipoDoc o pais
 
-              })
-              .catch(error => {
-                this.$q.dialog({ title: 'Error', message: error })
-              })
-          })
-          .catch(error => {
-            this.$q.dialog({ title: 'Error', message: error })
-          })
+            if (this.pais == "") this.$q.dialog({ title: 'Aviso', message: 'El cliente no tiene país de residencia asignado, añádelo para poder generar factura' })
+            
+            if (this.tipoDoc == "") this.$q.dialog({ title: 'Aviso', message: 'El cliente no tiene TipoDoc seleccionado, añádelo para poder generar factura' })
+            
+            if (this.objRecord.Nombre == "" || this.objRecord.Nif == "") this.$q.dialog({ title: 'Aviso', message: 'Revisa el DNI/Pasapote de cliente para poder generar factura' })
+                      
+            
+        }
       } else {
         this.$q.dialog({
           title: 'Aviso',
@@ -174,20 +342,147 @@ export default {
           this.$emit('close')
         })
       }
+    },
+    copiarFacturasAEAT(record) {
+      //Metodo para copiar datos en tabla: facturasaeat, y así que los campos que se visualicen desde el componente FACTURAS AEAT, sean los de la tabla AEAT
+      var formData = new FormData()
+      for (var key in record) {
+        formData.append(key, record[key])
+      }  
+
+      //console.log('record', record) - tabla estancias
+          
+      return this.$axios.post(`facturasAEAT/bd_facturasAEAT.php/guardarBD`, formData, headerFormData)
+        .then(response => {
+            var res = response.data //aqui tengo el lastId insertado en facturasAEAT
+            console.log('response', res)
+            var formData1 = new FormData()
+            formData1.append('id', res.id) //aqui tengo id de la tabla facturas aeat
+            formData1.append('estadoFactura', record.estadoAeat) //PENDIENTE
+            
+            return this.$axios.post(`SIF/verifactu2.php/preparoVerifactu`, formData1, headerFormData)
+                    .then(response => {
+
+                      this.$q.dialog({ title: 'Factura generada', message: JSON.stringify(response.data.textoValidacion) })
+                      console.log('textoValid', JSON.stringify(response.data.textoValidacion).slice(1,-1))
+                      formData.append("respAEAT", JSON.stringify(response.data))
+                      formData.append("estadoAEAT", JSON.stringify(response.data.textoValidacion).slice(1,-1))
+                      formData.append('idAeat', res.id)
+                       
+                      return this.$axios.post('facturasAEAT/bd_facturasAEAT.php/almacenoRespAEAT', formData, headerFormData)
+                        .then(response => {
+                          console.log('response almaceno', response) 
+                          if(response.textoValidacion == 'Incorrecto') {
+                            
+                          }                        
+                        
+                        })
+                        .catch(error => {
+                            this.$q.dialog({ title: 'Error', message: error })
+                        })
+
+                    })
+                    .catch(error => {
+                       
+                        this.$q.dialog({ title: 'Error', message: error })
+                    })  
+        })
+        .catch(error => {
+          this.$q.dialog({ title: 'Error', message: error })
+        })
+      
+    },
+
+    validacionCliente(record) {
+      this.objRecord = {}
+      this.nifValidationClass = ''; // Remueve cualquier estilo previo
+          
+      //hago validacionNIF, nombre, pais, tipoDoc
+      this.objRecord = {
+        Nombre: '',
+        Nif: ''
+      };
+      
+      
+      return this.$axios.get(`facturasAEAT/bd_facturasAEAT.php/encontrarCliente`, { params: { idCliente: record.idCliente } })
+        .then(response => { 
+            
+          this.objRecord = {
+              Nombre: response.data.nombre,
+              Nif: response.data.nroDoc
+            };
+            
+            this.pais = response.data.pais
+            this.tipoDoc = response.data.tipoDoc
+
+            if (this.pais == "") {
+              this.$q.dialog({ title: 'El cliente no tiene país de residencia asignado, añádelo para poder generar factura' })
+                  // Si hay un error en la validación AEAT, ponlo en rojo
+                  this.validacionCli = 'ERROR'
+            }
+            if (this.tipoDoc == "") {
+              this.$q.dialog({ title: 'El cliente no tiene TipoDoc seleccionado, añádelo para poder generar factura' })
+                  // Si hay un error en la validación AEAT, ponlo en rojo
+                  this.validacionCli = 'ERROR'
+            }
+           
+            if (this.pais === 'ESP') {
+              return this.$axios.get(`SIF/validacionNif.php`, { params: this.objRecord })
+                .then(response => {
+                    if(response.data == "IDENTIFICADO"){
+                      this.nifValidationClass = 'q-select-success';
+                      this.$q.notify('Cliente IDENTIFICADO por la AEAT')
+                      this.validacionCli = 'OK'
+                    } else {
+                      this.nifValidationClass = 'q-select-error';
+                      this.validacionCli = 'ERROR'
+                      this.$q.dialog({
+                        title: 'Atención',
+                        message: 'Cliente NO IDENTIFICADO por la AEAT. Por favor revise el campo DNI/Pasaporte',
+                        ok: {
+                          label: 'Aceptar',
+                          color: 'primary'
+                        },
+                        persistent: true // evita que se cierre haciendo clic fuera
+                      })
+                    }
+                  })
+                  .catch(error => {
+                    this.$q.dialog({ title: 'Error en la Validación AEAT', message: error })
+                    // Si hay un error en la validación AEAT, ponlo en rojo
+                    this.validacionCli = 'ERROR'
+                    this.nifValidationClass = 'q-select-error'; // Establece la clase de error
+                  })
+              
+            } else {
+              this.$q.notify('Cliente extranjero - no se valida por la AEAT')
+            }
+          })
+          .catch(error => {
+            this.$q.dialog({ title: 'Faltan datos obligatorios del cliente: Nombre, DNI/Pasaporte, TipoDoc o Pais residencia ', message: error })
+            // Si hay un error en la validación AEAT, ponlo en rojo
+            this.validacionCli = 'ERROR'
+            this.nifValidationClass = 'q-select-error'; // Establece la clase de error
+          })
+
+      
+
     }
   },
   mounted () {
-
+    
     this.listaClientesFilter = this.listaClientes
     this.listaTipoEstanciaFilter = this.listaTipoEstancia
+    this.listaFactEmitidasFilter = this.listaNumFactEmitidas
     this.recordToSubmit = Object.assign({}, this.value)
-    console.log('record', this.recordToSubmit)
+    console.log('record sub', this.recordToSubmit)
     if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)
     if (this.recordToSubmit.fechaSalida) this.recordToSubmit.fechaSalida = this.recordToSubmit.fechaSalida.substring(0,10)
     if (this.recordToSubmit.FechaFactura) this.recordToSubmit.FechaFactura = this.recordToSubmit.FechaFactura.substring(0,10)
     if (this.recordToSubmit.NroFactura!==null && this.user.login!=='jvilata') { // no dejo modificar campos factura
       this.disableNroFactura = true
     }
+    
   },
   watch: {
     recordToSubmit: { // detecta cambios en las propiedades de este objeto (tienen que estar inicializadas en data())

@@ -54,7 +54,7 @@
             option-label="nombreMunicipio" 
             emit-value
             map-options
-            @filter="filterMunicipios" 
+            @filter="filterMunicipios"
             use-input
             hide-selected
             fill-input
@@ -80,6 +80,7 @@
             hide-selected
             fill-input
             input-debounce="0"
+            :rules="obligatorioPais"
               />
         </div>
       
@@ -96,8 +97,17 @@
           option-value="codElemento"
           option-label="valor1"
           emit-value
+          :rules="obligatorioTipoDoc"
          />
-          <q-input outlined clearable label="DNI/Pasaporte" v-model="cliente.nroDoc" class="col-xs-7 col-sm-4"/>
+          <q-input 
+            outlined 
+            clearable 
+            :style="nifSelectStyle" 
+            label="DNI/Pasaporte" 
+            v-model="cliente.nroDoc" 
+            class="col-xs-7 col-sm-4"
+            @blur="validacionNif(cliente)"
+            :rules="obligatorioDNI"/>
           
           <q-input outlined clearable label="Soporte Documento" v-model="cliente.soporteDocumento" class="col-xs-6 col-sm-4"/>
           
@@ -215,10 +225,20 @@ export default {
       listaTipoFactFilter: this.listaTipoFact,
       listaMunicipiosFilter: [],
       listaPaisesFilter: [],
+      nifValidationClass: '', // Inicialmente vacía
       // Definimos las reglas de validación para el email
       emailRules: [
         val => (val && val.length > 0) || 'El email es obligatorio',
         val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Introduce un formato de email válido'
+      ],
+      obligatorioTipoDoc: [
+        val => (val !== null && val !== undefined) || 'El tipo de documento es obligatorio'
+      ],
+      obligatorioDNI: [
+        val => (val !== null && val !== undefined) || 'El tipo de documento es obligatorio'
+      ],
+      obligatorioPais: [
+        val => (val !== null && val !== undefined) || 'El tipo de documento es obligatorio'
       ]
     }
   },
@@ -227,8 +247,26 @@ export default {
     ...mapState('tabs', ['tabs']),
     ...mapState('tablasAux', ['listaTipoDoc', 'listaTipoFact', 'listaTipoServ']),
     ...mapState('servicios', ['listaServiciosPeriodicos']),
-    ...mapState('ministerioGC', ['listaMunicipios', 'listaPaises'])
-    
+    ...mapState('ministerioGC', ['listaMunicipios', 'listaPaises']),
+    nifSelectStyle() {
+      // Determine the background color based on nifValidationClass
+      let bgColor = 'white'; // Default or no validation color
+      if (this.nifValidationClass === 'q-select-success') {
+        bgColor = '#e6ffe6'; // Light green
+      } else if (this.nifValidationClass === 'q-select-error') {
+        bgColor = '#ffe6e6'; // Light red
+      } else if (this.nifValidationClass === 'q-select-warning') {
+        bgColor = '#fffacd'; // Light yellow
+      }
+      
+      // Return a style object. Quasar will interpret this and apply it correctly.
+      // For outlined fields, directly setting backgroundColor on the component often works
+      // because Quasar internally applies it to the correct child element or uses it
+      // to set its own CSS variable like --q-field-bg.
+      return {
+        backgroundColor: bgColor
+      };
+    }
 
   },
   methods: {
@@ -238,7 +276,6 @@ export default {
     filterMunicipios (val, update, abort) {
       update(() => {
         const needle = val.toLowerCase()
-        console.log('si,hola',needle)
         this.listaMunicipiosFilter = this.listaMunicipios.filter(v => v.nombreMunicipio.toLowerCase().indexOf(needle) > -1)
       })
     },
@@ -272,6 +309,47 @@ export default {
     cambiaDatosExpedicion (fechaEx) {
       const year = parseInt(fechaEx.substring(0, 4)) + 10
       this.cliente.fechaValidez = year + fechaEx.substring(4, 19)
+    },
+    validacionNif(record) {
+     
+      var objRecord = {}
+      console.log(record) //cliente
+     // if(record.tipoFactura == "EMITIDA" && (record.idCliente !== null && record.idCliente !== '0' && record.idCliente !== 0 && record.idCliente !== '' )) {
+        //hago validacionNIF, si OK, entonces almaceno
+        //recupero cif cliente: encontrarCifCliente
+        this.nifValidationClass = ''; // Remueve cualquier estilo previo
+        var idC = record.id
+        var varNif = record.nroDoc
+        var varNom = record.nombreCompleto
+        objRecord = {
+          Nombre: varNom,
+          Nif: varNif
+        };
+          
+        return this.$axios.get(`SIF/validacionNif.php`, { params: objRecord })
+        .then(response => {
+            if(response.data == "IDENTIFICADO"){
+              this.nifValidationClass = 'q-select-success';
+              this.$q.notify('Cliente IDENTIFICADO por la AEAT')
+            } else {
+              this.nifValidationClass = 'q-select-error';
+              this.$q.dialog({
+                title: 'Atención',
+                message: 'Cliente NO IDENTIFICADO por la AEAT. Por favor revise el campo DNI/Pasaporte',
+                ok: {
+                  label: 'Aceptar',
+                  color: 'primary'
+                },
+                persistent: true // evita que se cierre haciendo clic fuera
+              })
+            }
+          })
+          .catch(error => {
+            this.$q.dialog({ title: 'Error en la Validación AEAT', message: error })
+            // Si hay un error en la validación AEAT, ponlo en rojo
+            this.nifValidationClass = 'q-select-error'; // Establece la clase de error
+          })
+
     }
   },
   watch: {
