@@ -13,7 +13,7 @@ const headerFormData = {
   }
 }
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost/gestur/php/', //bbdd local: http://localhost/gestur/php/ ; producción: https://vidawm.com/gestur/php/
+  baseURL: 'https://vidawm.com/gestur/php/', //bbdd local: http://localhost/gestur/php/ ; producción: https://vidawm.com/gestur/php/
   withCredentials: true,
   headers: {
     Accept: ['application/json', 'text/html', 'application/xhtml+xml', 'application/xml'],

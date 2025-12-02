@@ -62,7 +62,7 @@ export default {
       })
     },*/
     getRecords () {
-      console.log('this.filterR en filter', this.filterR)
+      
       this.$emit('getRecords', this.filterR) // lo captura accionesMain
     },
     formatDate (pdate) {

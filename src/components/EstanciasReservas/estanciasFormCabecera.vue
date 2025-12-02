@@ -7,11 +7,10 @@
             v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'"
             class="col-xs-7 col-sm-2"
             outlined
-            clearable
             label="Tipo Estancia"
             stack-label
             v-model="recordToSubmit.tipoEstancia"
-            :options="listaTipoEstancia"
+            :options="listaTipoEstanciaFilter"
             option-value="codElemento"
             option-label="valor1"
             emit-value
@@ -20,6 +19,7 @@
             hide-selected
             fill-input
             input-debounce="0"
+            @filter="filterTipoEstancia"
           />
           <q-input class="col-xs-12 col-sm-2" readonly outlined label="Estado SIF - AEAT" stack-label v-model="recordToSubmit.estadoAeat" />
 
@@ -90,10 +90,10 @@
             stack-label
             v-model="recordToSubmit.FechaFactura"
             type="date"
-            :readonly="disableNroFactura"
+            :readonly="isFacturaGenerada"
           />
         <q-input v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'" class="col-xs-6 col-sm-1" outlined label="Número Factura" stack-label v-model="recordToSubmit.NroFactura" 
-            :readonly="disableNroFactura" />
+            :readonly="isFacturaGenerada" />
         
   <!--   <div class="col"></div>
 
@@ -227,12 +227,26 @@ export default {
     }
   },
   methods: {
-    ...mapActions('estancias', ['generarFactura', 'findEstancia']),
+    ...mapActions('estancias', ['generarFactura', 'findEstancia', 'addEstancia']),
     filterClientes (val, update, abort) {
       update(() => {
         const needle = val.toLowerCase()
         this.listaClientesFilter = this.listaClientes.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
       })
+    },
+    filterTipoEstancia (val, update) {
+      if (val === '') {
+        // Si el valor es vacío, mostrar la lista completa
+        update(() => {
+          this.listaTipoEstanciaFilter = this.listaTipoEstancia
+        })
+        return
+      }
+      update(() => {
+        const needle = val.toLowerCase()
+        // Filtrar por el campo que se muestra (option-label="valor1")
+        this.listaTipoEstanciaFilter = this.listaTipoEstancia.filter(v => v.valor1.toLowerCase().indexOf(needle) > -1)
+  })
     },
     filterEstanciasFactEmitidas (val, update, abort) {
       update(() => {
@@ -250,6 +264,18 @@ export default {
       return date.formatDate(date1, 'DD/MM/YYYY')
     },
     validacionDatosFactura (record) {
+
+      //Primero guardo
+      this.addEstancia(this.recordToSubmit)
+        .then(response => {
+          
+          this.$q.notify('Se ha actualizado registro')
+        })
+        .catch(error => {
+          this.$q.dialog({ title: 'Error', message: error })
+        })
+
+
       this.validacionFact = ''
       this.descripcion = ''
       var totalIva = this.recordToSubmit.totalIva
@@ -459,7 +485,7 @@ export default {
               Nombre: response.data.nombre,
               Nif: response.data.nroDoc
             };
-            
+            console.log()
             this.nacionalidad = response.data.nacionalidad
             this.tipoDoc = response.data.tipoDoc
 
@@ -521,7 +547,7 @@ export default {
   mounted () {
     
     this.listaClientesFilter = this.listaClientes
-   // this.listaTipoEstanciaFilter = this.listaTipoEstancia
+   this.listaTipoEstanciaFilter = this.listaTipoEstancia
     this.listaFactEmitidasFilter = this.listaNumFactEmitidas
     this.recordToSubmit = Object.assign({}, this.value)
     if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)

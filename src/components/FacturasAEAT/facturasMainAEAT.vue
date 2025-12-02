@@ -94,7 +94,7 @@ export default {
       this.expanded = false
     },
     openForm () {
-        var strUrl = 'https://vidawm.com/sif-vidawm/'
+        var strUrl = 'https://vidawm.com/sif-gestur/'
         if (window.cordova === undefined) { // desktop
           openURL(strUrl)
         } else { // estamos en un disp movil
@@ -110,7 +110,7 @@ export default {
       console.log('getRec desde facturasMainAEAT', this.tabs['facturasMainAEAT-1'].meta.value)
     } else { // es la primera vez que entro, cargo valores po defecto*/
       this.filterRecord.tipoEstancia = '3'
-      console.log('getRec desde facturasMainAEAT else:', this.filterRecord)
+    
       this.getRecords(this.filterRecord)
     //}
     

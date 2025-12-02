@@ -149,7 +149,7 @@
           { name: 'ImporteTotal', align: 'left', label: 'Total Factura', field: 'ImporteTotal', sortable: true, format: val => this.$numeral(parseFloat(val)).format('0,0.00') },
           { name: 'TipoFactura', align: 'left', label: 'Tipo Factura:', field: 'TipoFactura', sortable: true },
           { name: 'RegistroAnterior_numSerieFactura', align: 'left', label: 'Nº Fac Registro Ant.', field: 'RegistroAnterior_numSerieFactura', sortable: true, style: 'width: 80px' },
-          { name: 'contestacionAEAT', align: 'left', label: 'Respuesta AEAT', field: 'contestacionAEAT', sortable: true, style: 'width: 80px' },
+          { name: 'estadoAEAT', align: 'left', label: 'Respuesta AEAT', field: 'estadoAEAT', sortable: true, style: 'width: 80px' },
           { name: 'NombreRazonEmisor', align: 'left', label: 'Empresa emisora:', field: 'NombreRazonEmisor', sortable: true }
         ],
         pagination: { rowsPerPage: 0 }
@@ -163,16 +163,17 @@
       getRecords () {
         var objFilter = {};
         objFilter = Object.assign({}, this.value)        
-        console.log('value en facturas Grid AEAT: ', this.value) /* Object: {tipoEstancia: '3', fechainicial: '2025-11-24'} */
+       // console.log('value en facturas Grid AEAT: ', this.value) , por defecto tipoEstancia: 3
+       // /* Object: {tipoEstancia: '3', fechainicial: '2025-11-24'} */
 
        return this.$axios.get('facturasAEAT/bd_facturasAEAT.php/findFacturasFilter', { params: objFilter }, headerFormData)
           .then(response => {
             this.registrosSeleccionados = response.data
-            console.log('regs', this.registrosSeleccionados)
+            
             
             if (this.registrosSeleccionados.length > 0) {
-              console.log('aqui',this.registrosSeleccionados)
-              this.registrosSeleccionados.forEach(element => {
+              
+              /*this.registrosSeleccionados.forEach(element => {
                 if (element.contestacionAEAT !== null){
                   let str = element.contestacionAEAT
                   // parseamos a objeto
@@ -185,7 +186,7 @@
                   
                   
                 }
-              })
+              })*/
             }
 
 
@@ -241,7 +242,7 @@
             // window.open('', 'view') // abre nueva ventana para que no sustituya a la actual
             link.click()
             document.body.removeChild(link)
-          } else { // estamos en un disp movil            console.log('hola3')
+          } else { // estamos en un disp movil           
             const blobPdf = response.data // new Blob([response.data], { type: response.data.type })
             openBlobFile(nomFile, blobPdf, response.data.type)
           }
