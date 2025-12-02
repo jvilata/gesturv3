@@ -219,6 +219,7 @@ export default {
     saveRecord (record) {
       var serv = this.listaServicios.find(s => s.id === record.idServicio)
       var idserv = -1 // si no es bungalow no tengo que dar alarma
+      
       if (serv && ['10','7','1','2','6','7','9'].includes(serv.tipoServicio)) {// 10 apar, 7 mobilcasa, 1 bungalow, 2 movilhome, 6 bungviejo, 7 resid, 9 molino
         idserv = record.idServicio
       }

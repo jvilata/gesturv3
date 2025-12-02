@@ -107,8 +107,12 @@ export default {
     ...mapState('login', ['user']), // importo state.user desde store-login
     isFacturaGenerada() {
         // Normalizamos el valor para considerar 0, '0', '', y null como "no generada"
-        const nroFact = this.recordToSubmit.NroFactura;
-        return (nroFact !== null && nroFact !== 0 && nroFact !== '0' && nroFact !== '');
+        const nro = Number(this.recordToSubmit.NroFactura);
+        const estado = this.recordToSubmit.estadoAeat;
+
+        const nroFact = (nro !== null && nro !== 0 && nro !== '0' && nro !== '');
+        const estadoAeat = (estado === 'ENVIADA AEAT');
+        return (nroFact && estadoAeat);
     }
   },
   methods: {

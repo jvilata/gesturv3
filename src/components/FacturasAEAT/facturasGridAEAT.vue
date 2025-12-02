@@ -1,9 +1,9 @@
 <template>
     <div>
-      <q-card flat v-if="value.nombre">
+    <!-- <q-card flat v-if="value.nombre">
         <q-card-section   class="q-pa-xs">
               <q-item class="q-pa-xs bg-blue-grey-1 text-grey-8">
-                <!-- cabecera de formulario. Botón de busqueda y cierre de tab -->
+              
                 <q-item-section avatar>
                   <q-icon name="edit" />
                 </q-item-section>
@@ -22,7 +22,7 @@
                 </q-item-section>
               </q-item>
         </q-card-section>
-      </q-card>
+      </q-card>--> 
     <q-item class="row">
       <!-- GRID. en row-key ponemos la columna del json que sea la id unica de la fila -->
       <q-table
@@ -133,17 +133,16 @@
   import { openBlobFile } from 'components/General/cordova.js'
   
   export default {
-    props: ['modelValue', 'id', 'fromFacturasMain'], // en 'value' tenemos el filtro
+    props: ['value', 'id', 'fromFacturasMain'], // en 'value' tenemos el filtro
     data () {
       return {
         rowId: '',
-        value: {},
         registrosSeleccionados: [],
         columns: [
           { name: 'id', align: 'left', label: 'id', field: 'id', sortable: true },
           { name: 'RegistroFactura', align: 'left', label: 'Registro Factura', field: 'RegistroFactura', sortable: true },
           { name: 'DestinatarioNombreRazon', align: 'left', label: 'Nombre Cliente', field: 'DestinatarioNombreRazon', sortable: true, style: 'width: 170px; whiteSpace: normal' },
-          { name: 'FechaHoraHusoGenRegistro', align: 'left', label: 'Fecha Envío AEAT', field: 'FechaHoraHusoGenRegistro', sortable: true, format: val => date.formatDate(date.extractDate(val, 'YYYY-MM-DD HH:mm:ss'), 'YYYY-MM-DD HH:mm:ss'), style: 'width: 100px;' },
+          { name: 'FechaHoraHusoGenRegistro', align: 'left', label: 'Fecha Envío AEAT', field: 'FechaHoraHusoGenRegistro', sortable: true, style: 'width: 100px;' },
           { name: 'NumSerieFactura', align: 'left', label: 'NºFactura', field: 'NumSerieFactura', sortable: true },
           { name: 'BaseImponible', align: 'left', label: 'Base', field: 'BaseImponible', sortable: true, format: val => this.$numeral(parseFloat(val)).format('0,0.00') },
           { name: 'CuotaTotal', align: 'left', label: 'Total Iva', field: 'CuotaTotal', sortable: true, format: val => this.$numeral(parseFloat(val)).format('0,0.00') },
@@ -157,23 +156,19 @@
       }
     },
     computed: {
-      ...mapState('tablasAux', ['listaSINO']),
-      ...mapState('entidades', ['entidadSelf', 'entidadAsesor']),
-      ...mapState('login', ['user']),
-      ...mapState('tabs', ['tabs'])
+       ...mapState('login', ['user'])
     },
     methods: {
       ...mapActions('tabs', ['addTab']),
       getRecords () {
-        var objFilter = {}
-        /*if (this.fromFacturasMainAEAT === undefined) {
-          Object.assign(objFilter, { codEmpresa: this.user.codEmpresa, tipoObjeto: (this.value.tipoForm === 'ENTIDADES' ? 'E' : 'A'), idObjeto: this.value.id })
-        } else*/ Object.assign(objFilter, this.value) // viene de facturasMain
+        var objFilter = {};
+        objFilter = Object.assign({}, this.value)        
+        console.log('value en facturas Grid AEAT: ', this.value) /* Object: {tipoEstancia: '3', fechainicial: '2025-11-24'} */
 
-        console.log('value', this.value)
-        return this.$axios.get('facturasAEAT/bd_facturasAEAT.php/findFacturasFilter', { params: objFilter }, headerFormData)
+       return this.$axios.get('facturasAEAT/bd_facturasAEAT.php/findFacturasFilter', { params: objFilter }, headerFormData)
           .then(response => {
             this.registrosSeleccionados = response.data
+            console.log('regs', this.registrosSeleccionados)
             
             if (this.registrosSeleccionados.length > 0) {
               console.log('aqui',this.registrosSeleccionados)
@@ -258,12 +253,19 @@
 
 
     },
+    watch: {
+    
+      value: {
+        handler (newValue) {
+          if (Object.keys(newValue).length > 0) {
+            this.getRecords(newValue);
+          }
+        },
+        deep: true // Observa cambios dentro del objeto
+      }
+  },
     mounted () {
-      this.value = this.modelValue
-      if (this.value === undefined) this.value = Object.assign({}, this.tabs[this.id].meta.value)
       this.getRecords()
-      /*Object.assign(this.value, this.tabs[this.id].meta.value)
-      this.getRecords()*/
     }
   }
 </script>

@@ -80,7 +80,6 @@
             hide-selected
             fill-input
             input-debounce="0"
-            :rules="obligatorioPais"
               />
         </div>
       
@@ -129,6 +128,7 @@
             hide-selected
             fill-input
             input-debounce="0"
+            :rules="obligatorioPais"
             />
 
             <q-input label="Fecha Nacimiento" class="col-xs-6 col-sm-3" clearable outlined stack-label
@@ -313,7 +313,6 @@ export default {
     validacionNif(record) {
      
       var objRecord = {}
-      console.log(record) //cliente
      // if(record.tipoFactura == "EMITIDA" && (record.idCliente !== null && record.idCliente !== '0' && record.idCliente !== 0 && record.idCliente !== '' )) {
         //hago validacionNIF, si OK, entonces almaceno
         //recupero cif cliente: encontrarCifCliente
@@ -325,31 +324,36 @@ export default {
           Nombre: varNom,
           Nif: varNif
         };
-          
-        return this.$axios.get(`SIF/validacionNif.php`, { params: objRecord })
-        .then(response => {
-            if(response.data == "IDENTIFICADO"){
-              this.nifValidationClass = 'q-select-success';
-              this.$q.notify('Cliente IDENTIFICADO por la AEAT')
-            } else {
-              this.nifValidationClass = 'q-select-error';
-              this.$q.dialog({
-                title: 'Atención',
-                message: 'Cliente NO IDENTIFICADO por la AEAT. Por favor revise el campo DNI/Pasaporte',
-                ok: {
-                  label: 'Aceptar',
-                  color: 'primary'
-                },
-                persistent: true // evita que se cierre haciendo clic fuera
-              })
-            }
-          })
-          .catch(error => {
-            this.$q.dialog({ title: 'Error en la Validación AEAT', message: error })
-            // Si hay un error en la validación AEAT, ponlo en rojo
-            this.nifValidationClass = 'q-select-error'; // Establece la clase de error
-          })
+        
+        
 
+        if(this.cliente.nacionalidad == "ESP") {
+          return this.$axios.get(`SIF/validacionNif.php`, { params: objRecord })
+          .then(response => {
+              if(response.data == "IDENTIFICADO"){
+                this.nifValidationClass = 'q-select-success';
+                this.$q.notify('Cliente IDENTIFICADO por la AEAT')
+              } else {
+                this.nifValidationClass = 'q-select-error';
+                this.$q.dialog({
+                  title: 'Atención',
+                  message: 'Cliente NO IDENTIFICADO por la AEAT. Por favor revise el campo DNI/Pasaporte',
+                  ok: {
+                    label: 'Aceptar',
+                    color: 'primary'
+                  },
+                  persistent: true // evita que se cierre haciendo clic fuera
+                })
+              }
+            })
+            .catch(error => {
+              this.$q.dialog({ title: 'Error en la Validación AEAT', message: error })
+              // Si hay un error en la validación AEAT, ponlo en rojo
+              this.nifValidationClass = 'q-select-error'; // Establece la clase de error
+            })
+        } else {
+            this.$q.notify('Cliente extranjero - no se valida por la AEAT')
+        }
     }
   },
   watch: {

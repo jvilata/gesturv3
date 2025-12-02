@@ -1,10 +1,11 @@
 <template>
   <q-layout view="lHh lpR fFf">
-    <q-header elevated >
+    <q-header elevated :class="modoTest ? 'bg-red-9': $primary">
       <q-toolbar>
         <q-btn flat @click="leftDrawerOpen = !leftDrawerOpen" round dense icon="menu" />
         <div class="items-center no-wrap absolute-center">
-          <div class="text-subtitle1">{{ nomAplicacion }}  -  v17.11.2025</div>
+          <div v-if="modoTest" class="text-subtitle1">{{ nomAplicacion }} TEST - TEST - TEST</div>
+          <div v-if="!modoTest" class="text-subtitle1">{{ nomAplicacion }}-  v17.11.2025</div>
         </div>
         <div class="q-gutter-sm q-pr-md row items-center no-wrap absolute-right">
           <q-btn round flat class="bg-red-9 text-weight-light">
@@ -104,6 +105,7 @@ export default {
   name: 'MainLayout',
   data () {
     return {
+      modoTest: false,
       nomAplicacion: 'Gestión Camping',
       leftDrawerOpen: false,
       miniState: false,
@@ -249,6 +251,8 @@ export default {
     this.comboListaPaises()
     this.comboListaClientes()
     this.loadListaServiciosMut()
+    if (this.$axios.defaults.baseURL.includes('localhost')) this.modoTest = true
+    
   }
 }
 </script>

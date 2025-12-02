@@ -10,24 +10,24 @@
       <q-select
         outlined
         clearable
-        label="Cliente"
+        label="Nombre Emisor"
         stack-label
-        v-model="filterR.idCliente"
-        :options="listaEntidadesFilter"
-        option-value="id"
-        option-label="nombre"
+        v-model="filterR.DestinatarioNombreRazon"
+        
+        option-value="DestinatarioNombreRazon"
+        option-label="DestinatarioNombreRazon"
         emit-value
         map-options
-        @filter="filterEntidades"
+       
         use-input
         hide-selected
         fill-input
         input-debounce="0"
-      />
+      /><!--@filter="filterNombreRazonEmisor" :options="DestinatarioNombreRazon"-->
+      <q-input outlined label="Tipo Estancia: Facturada" readonly />
       <q-input outlined clearable label="Fecha Exp. Desde" stack-label v-model="filterR.fechainicial" type="date" />
       <q-input outlined clearable label="Fecha Exp. Hasta" stack-label v-model="filterR.fechafinal" type="date" />
      
-      <q-input outlined label="Tipo Factura: EMITIDA" readonly/>
       <q-input outlined label="Estado Factura: ENVIADA AEAT" readonly/>
       <q-card-actions align="right">
         <q-btn  flat type="submit" label="Buscar" color="primary"/>
@@ -48,24 +48,21 @@ export default {
       filterR: {
         tipoFactura: "EMITIDA",
         estadoFactura: "ENVIADA AEAT"
-      },
-      listaEntidadesFilter: [],
-      listaActivosFilter: []
+      }
     }
   },
   computed: {
-    ...mapState('tablasAux', ['listaSINO', 'listaUsers', 'listaMeses', 'listaEstadosFactura', 'listaTiposFactura']),
-    ...mapState('entidades', ['listaEntidades']),
-    ...mapState('activos', ['listaActivos'])
-  },
+    ...mapState('tablasAux', ['listaSINO', 'listaUsers', 'listaMeses', 'listaEstadosFactura', 'listaTiposFactura']) 
+   },
   methods: {
-    filterEntidades (val, update, abort) {
+  /*  filterNombreRazonEmisor (val, update, abort) {
       update(() => {
         const needle = val.toLowerCase()
-        this.listaEntidadesFilter = this.listaEntidades.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
+        this.listaNombreRazonEmisorFilter = this.listaEntidades.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
       })
-    },
+    },*/
     getRecords () {
+      console.log('this.filterR en filter', this.filterR)
       this.$emit('getRecords', this.filterR) // lo captura accionesMain
     },
     formatDate (pdate) {

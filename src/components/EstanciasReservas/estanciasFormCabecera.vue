@@ -11,12 +11,11 @@
             label="Tipo Estancia"
             stack-label
             v-model="recordToSubmit.tipoEstancia"
-            :options="listaTipoEstanciaFilter"
+            :options="listaTipoEstancia"
             option-value="codElemento"
             option-label="valor1"
             emit-value
             map-options
-            @filter="filterTipoEst"
             use-input
             hide-selected
             fill-input
@@ -82,7 +81,7 @@
         <q-input class="col-xs-3 col-sm-1" outlined label="TPV" stack-label v-model="recordToSubmit.PorDatafono" :readonly="isFacturaGenerada"/>
       </div>
       <div class="row q-mt-sm" >
-        <q-btn outline class="col-xs-12 col-sm-2" color="primary" label="Generar Factura" @click="validacionDatosFactura(recordToSubmit)" /> <!--:disable="isFacturaGenerada" -->
+        <q-btn outline class="col-xs-12 col-sm-2" color="primary" label="Generar Factura" @click="validacionDatosFactura(recordToSubmit)" :disable="isFacturaGenerada" /> <!-- -->
         <q-input
             label="Fecha Factura"
             class="col-xs-6 col-sm-2"
@@ -96,7 +95,7 @@
         <q-input v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'" class="col-xs-6 col-sm-1" outlined label="Número Factura" stack-label v-model="recordToSubmit.NroFactura" 
             :readonly="disableNroFactura" />
         
-        <div class="col"></div>
+  <!--   <div class="col"></div>
 
         <q-select
           class="col-xs-12 col-sm-1"
@@ -159,8 +158,9 @@
           emit-value
           :readonly="isFacturaGenerada"
         />
-        
+      -->
       </div>
+    
   </q-card>
 </template>
 
@@ -180,6 +180,7 @@ export default {
       nifValidationClass: '', // Inicialmente vacía
       validacionCli: '',
       pais: '',
+      nacionalidad: '',
       tipoDoc: '',
       descripcion: '',
       objRecord: {},
@@ -198,8 +199,12 @@ export default {
 
    isFacturaGenerada() {
         // Normalizamos el valor para considerar 0, '0', '', y null como "no generada"
-        const nroFact = this.recordToSubmit.NroFactura;
-        return (nroFact !== null && nroFact !== 0 && nroFact !== '0' && nroFact !== '');
+        const nro = Number(this.recordToSubmit.NroFactura);
+        const estado = this.recordToSubmit.estadoAeat;
+
+        const nroFact = (nro !== null && nro !== 0 && nro !== '0' && nro !== '');
+        const estadoAeat = (estado === 'ENVIADA AEAT');
+        return (nroFact && estadoAeat);
     },
     
     nifSelectStyle() {
@@ -229,12 +234,6 @@ export default {
         this.listaClientesFilter = this.listaClientes.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
       })
     },
-    filterTipoEst (val, update, abort) {
-      update(() => {
-        const needle = val.toLowerCase()
-        this.listaTipoEstanciaFilter = this.listaTipoEstancia.filter(v => v.valor1.toLowerCase().indexOf(needle) > -1)
-      })
-    },
     filterEstanciasFactEmitidas (val, update, abort) {
       update(() => {
         const needle = val.toLowerCase()
@@ -257,20 +256,24 @@ export default {
       var base = this.recordToSubmit.base
       var tipoImpositivoFact = ''
 
-      if((totalIva !== "" || totalIva !== null) && (base !== "" || base !== null)) {
-        tipoImpositivoFact = parseInt((totalIva / base) * 100)
+      if((totalIva !== "" && totalIva !== null) && (base !== "" && base !== null)) {
+        tipoImpositivoFact = Math.round((totalIva / base) * 100)
+        //console.log('tipoFact 1: ', tipoImpositivoFact)
       }
 
+      
+     
       return this.validacionCliente(record) // Devuelve la promesa del final de validacionCliente
         .then(() => {
           // Metodo en backend para comprobar que hay datos de: base imponible, tipo imposiivo, cuota total, importe total y descripcion (ver tabla reservas)
           return this.$axios.get(`estancias/bd_estancias.php/validoDatosFact`, { params: { id: record.id } }) //en record.id va el idEstancia
         })  
           .then(response => { 
-            console.log('response valido datos: ', response.data)
-                if ((response.data.descripcionCorta !== "" || response.data.descripcionCorta !== null) && (response.data.tipoImpositivo !== "" || response.data.tipoImpositivo !== null) ) {
+            
+                if ((response.data.descripcionCorta !== "" && response.data.descripcionCorta !== null) && (response.data.tipoImpositivo !== "" && response.data.tipoImpositivo !== null) ) {
                   
-                  if(tipoImpositivoFact == parseInt(response.data.tipoImpositivo)) { // compruebo si es igual a la primera linea de la fact
+                 // console.log('tipoFact 2: ', Math.round(response.data.tipoImpositivo))
+                  if(tipoImpositivoFact == Math.round(response.data.tipoImpositivo)) { // compruebo si es igual a la primera linea de la fact
                     
                        this.validacionFact = 'OK'
                       this.descripcion = response.data.descripcionCorta
@@ -294,14 +297,18 @@ export default {
             this.validacionFact = 'ERROR'
             
           })
+            
+        
       
 
     },
     rellenarDatosFact () {
       // solo hay que generar factura cuando nroFactura sea cero
-      if (this.recordToSubmit.NroFactura === null || this.recordToSubmit.NroFactura === '0' || this.recordToSubmit.NroFactura === 0 || this.recordToSubmit.NroFactura === '') {
+      
+      if ((this.recordToSubmit.estadoAeat !== 'ENVIADA AEAT' )||(this.recordToSubmit.NroFactura === null || this.recordToSubmit.NroFactura === '0' || this.recordToSubmit.NroFactura === 0 || this.recordToSubmit.NroFactura === '')) {
         
         //Si todas las validaciones OK - entonces envío a AEAT
+        
         if(this.validacionCli === 'OK' && this.validacionFact === 'OK'){
           this.generarFactura(this.recordToSubmit)
             .then(response => {
@@ -324,7 +331,7 @@ export default {
             })
         } else { //this.validacionCli === 'ERROR' por algun motivo: el cliente no tiene nombre, dni, tipoDoc o pais
 
-            if (this.pais == "") this.$q.dialog({ title: 'Aviso', message: 'El cliente no tiene país de residencia asignado, añádelo para poder generar factura' })
+            if (this.nacionalidad == "") this.$q.dialog({ title: 'Aviso', message: 'El cliente no tiene nacionalidad asignada, añádelo para poder generar factura' })
             
             if (this.tipoDoc == "") this.$q.dialog({ title: 'Aviso', message: 'El cliente no tiene TipoDoc seleccionado, añádelo para poder generar factura' })
             
@@ -348,33 +355,74 @@ export default {
       var formData = new FormData()
       for (var key in record) {
         formData.append(key, record[key])
-      }  
-
-      //console.log('record', record) - tabla estancias
-          
+      }
       return this.$axios.post(`facturasAEAT/bd_facturasAEAT.php/guardarBD`, formData, headerFormData)
         .then(response => {
             var res = response.data //aqui tengo el lastId insertado en facturasAEAT
-            console.log('response', res)
             var formData1 = new FormData()
             formData1.append('id', res.id) //aqui tengo id de la tabla facturas aeat
             formData1.append('estadoFactura', record.estadoAeat) //PENDIENTE
+            formData1.append('idCliente', record.idCliente) //paso idCliente para consultar si es extranjero o no
+            
             
             return this.$axios.post(`SIF/verifactu2.php/preparoVerifactu`, formData1, headerFormData)
                     .then(response => {
-
-                      this.$q.dialog({ title: 'Factura generada', message: JSON.stringify(response.data.textoValidacion) })
-                      console.log('textoValid', JSON.stringify(response.data.textoValidacion).slice(1,-1))
-                      formData.append("respAEAT", JSON.stringify(response.data))
-                      formData.append("estadoAEAT", JSON.stringify(response.data.textoValidacion).slice(1,-1))
+                      
+                      const estadoAEAT = JSON.stringify(response.data.textoValidacion).slice(1,-1);
+                      
+                      
+                      formData.append("estadoAEAT", estadoAEAT) //Correcto, Incorrecto
                       formData.append('idAeat', res.id)
+
+                       const respuestaAEAT_Base64 = response.data.respuestaAEAT;
+                         // 1. Decodificar el string Base64
+                        const respuestaAEAT_Decodificada = atob(respuestaAEAT_Base64);
+                       // formData.append("respAEAT", JSON.stringify(response.data))
+                       formData.append("respAEAT", respuestaAEAT_Decodificada)
+
+                      if(estadoAEAT == 'Incorrecto') {
+                          
+                        // 2. Usar una expresión regular para encontrar el error
+                        // Busca el texto que está entre <tikR:DescripcionErrorRegistro> y </tikR:DescripcionErrorRegistro>
+                        const regex = /<tikR:DescripcionErrorRegistro>(.*?)<\/tikR:DescripcionErrorRegistro>/;
+                        const match = respuestaAEAT_Decodificada.match(regex);
+                        let descripcionError = 'Detalle de error no encontrado en el XML.';
+
+                        if (match && match[1]) {
+                            // El grupo de captura (.*?) contiene el texto del error
+                            descripcionError = match[1];
+                        }
+                        // 3. Mostrar el diálogo con el error específico
+                        this.$q.dialog({ 
+                            title: '❌ Error en Envío AEAT', 
+                            message: `<p>Estado: <strong>${estadoAEAT}</strong></p><p><strong>Detalle del Error:</strong> ${descripcionError}</p>`,
+                            html: true 
+                        });
+                      } else {
+                        this.$q.dialog({ title: 'Factura generada', message: estadoAEAT })
+                      }
+                      
                        
                       return this.$axios.post('facturasAEAT/bd_facturasAEAT.php/almacenoRespAEAT', formData, headerFormData)
                         .then(response => {
-                          console.log('response almaceno', response) 
-                          if(response.textoValidacion == 'Incorrecto') {
+                                                    
+                          this.findEstancia({ id: this.recordToSubmit.id })
+                            .then(response => {
+                              Object.assign(this.recordToSubmit, response.data[0])
+                              if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)
+                              if (this.recordToSubmit.fechaSalida) this.recordToSubmit.fechaSalida = this.recordToSubmit.fechaSalida.substring(0,10)
+                              if (this.recordToSubmit.FechaFactura) this.recordToSubmit.FechaFactura = this.recordToSubmit.FechaFactura.substring(0,10)
+                              
+                              if (estadoAEAT == "Correcto") {
+                                this.$q.notify({ type: 'positive', message: 'Factura y estado AEAT actualizados correctamente.' });
+                                    // Opcional: Cerrar el diálogo y la pestaña después de la actualización final
+                                    this.$emit('close');
+                              }
                             
-                          }                        
+                            })
+                            .catch(error => {
+                              this.$q.dialog({ title: 'Error', message: error })
+                            })
                         
                         })
                         .catch(error => {
@@ -403,7 +451,7 @@ export default {
         Nif: ''
       };
       
-      
+     
       return this.$axios.get(`facturasAEAT/bd_facturasAEAT.php/encontrarCliente`, { params: { idCliente: record.idCliente } })
         .then(response => { 
             
@@ -412,11 +460,11 @@ export default {
               Nif: response.data.nroDoc
             };
             
-            this.pais = response.data.pais
+            this.nacionalidad = response.data.nacionalidad
             this.tipoDoc = response.data.tipoDoc
 
-            if (this.pais == "") {
-              this.$q.dialog({ title: 'El cliente no tiene país de residencia asignado, añádelo para poder generar factura' })
+            if (this.nacionalidad == "") {
+              this.$q.dialog({ title: 'El cliente no tiene nacionalidad asignada, añádela para poder generar factura' })
                   // Si hay un error en la validación AEAT, ponlo en rojo
                   this.validacionCli = 'ERROR'
             }
@@ -426,7 +474,7 @@ export default {
                   this.validacionCli = 'ERROR'
             }
            
-            if (this.pais === 'ESP') {
+            if (this.nacionalidad === 'ESP') {
               return this.$axios.get(`SIF/validacionNif.php`, { params: this.objRecord })
                 .then(response => {
                     if(response.data == "IDENTIFICADO"){
@@ -455,27 +503,27 @@ export default {
                   })
               
             } else {
+              this.validacionCli = 'OK'
               this.$q.notify('Cliente extranjero - no se valida por la AEAT')
             }
           })
           .catch(error => {
-            this.$q.dialog({ title: 'Faltan datos obligatorios del cliente: Nombre, DNI/Pasaporte, TipoDoc o Pais residencia ', message: error })
+            this.$q.dialog({ title: 'Faltan datos obligatorios del cliente: Nombre, DNI/Pasaporte, TipoDoc o Nacionalidad ', message: error })
             // Si hay un error en la validación AEAT, ponlo en rojo
             this.validacionCli = 'ERROR'
             this.nifValidationClass = 'q-select-error'; // Establece la clase de error
           })
 
-      
+  
 
     }
   },
   mounted () {
     
     this.listaClientesFilter = this.listaClientes
-    this.listaTipoEstanciaFilter = this.listaTipoEstancia
+   // this.listaTipoEstanciaFilter = this.listaTipoEstancia
     this.listaFactEmitidasFilter = this.listaNumFactEmitidas
     this.recordToSubmit = Object.assign({}, this.value)
-    console.log('record sub', this.recordToSubmit)
     if (this.recordToSubmit.fechaEntrada) this.recordToSubmit.fechaEntrada = this.recordToSubmit.fechaEntrada.substring(0,10)
     if (this.recordToSubmit.fechaSalida) this.recordToSubmit.fechaSalida = this.recordToSubmit.fechaSalida.substring(0,10)
     if (this.recordToSubmit.FechaFactura) this.recordToSubmit.FechaFactura = this.recordToSubmit.FechaFactura.substring(0,10)

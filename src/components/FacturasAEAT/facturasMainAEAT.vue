@@ -58,7 +58,7 @@
 
       <!-- formulario tabla de resultados de busqueda -->
       <facturasGridAEAT
-        v-model="filterRecord"
+        :value="filterRecord"
         fromFacturasMain=true
         :key="refreshKey"
         />
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState } from 'vuex'
 import { openURL } from 'quasar'
 import facturasFilterAEAT from 'components/FacturasAEAT/facturasFilterAEAT.vue'
 import facturasGridAEAT from 'components/FacturasAEAT/facturasGridAEAT.vue'
@@ -78,26 +78,22 @@ export default {
       refreshKey: 0,
       visible: '',
       filterRecord: {},
-      nomFormulario: 'Facturas Emitidas - Enviadas AEAT',
-      registrosSeleccionados: []
+      nomFormulario: 'Facturas Emitidas - Enviadas AEAT'
     }
   },
   computed: {
-    ...mapState('login', ['user']), // importo state.user desde store-login
     ...mapState('tabs', ['tabs']),
-    ...mapState('entidades', ['listaEntidades']),
-    ...mapState('activos', ['listaActivos'])
+    ...mapState('login', ['user']) // importo state.user desde store-login
   },
   methods: {
-    ...mapActions('entidades', ['loadEntidades']),
-    ...mapActions('activos', ['loadActivos']),
     getRecords (filter) {
-      Object.assign(this.filterRecord, filter)
+      
+      this.filterRecord = Object.assign({}, filter)
+      console.log('this.filterRecord al haber hecho el assign', this.filterRecord)
       this.refreshKey++
       this.expanded = false
     },
     openForm () {
-      
         var strUrl = 'https://vidawm.com/sif-vidawm/'
         if (window.cordova === undefined) { // desktop
           openURL(strUrl)
@@ -108,11 +104,15 @@ export default {
     }
   },
   mounted () {
-    if (this.listaEntidades.length <= 0) this.loadEntidades() // carga store listaEntidades
-    if (this.listaActivos.length <= 0) this.loadActivos(this.user.codEmpresa) // carga store listaActivos
     // es la primera vez que entro, cargo valores po defecto
-      // Object.assign(this.filterRecord, { codEmpresa: this.user.codEmpresa, estadoFactura: 'PENDIENTE' })
-      this.getRecords({ codEmpresa: this.user.codEmpresa })
+    /*  if (Object.keys(this.tabs['facturasMainAEAT-1'].meta.value).length > 0) {
+      this.getRecords(this.tabs['facturasMainAEAT-1'].meta.value)
+      console.log('getRec desde facturasMainAEAT', this.tabs['facturasMainAEAT-1'].meta.value)
+    } else { // es la primera vez que entro, cargo valores po defecto*/
+      this.filterRecord.tipoEstancia = '3'
+      console.log('getRec desde facturasMainAEAT else:', this.filterRecord)
+      this.getRecords(this.filterRecord)
+    //}
     
   },
   unmounted () {

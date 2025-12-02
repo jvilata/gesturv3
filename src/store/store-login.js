@@ -1,4 +1,4 @@
-import { axiosInstance } from 'boot/axios.js' // headerFormData
+import { axiosInstance, headerFormData } from 'boot/axios.js'
 // state: accesibles en lectura desde componentes a traves de ...mapState('login', ['user'])
 const state = {
   loggingIn: false,
@@ -26,7 +26,19 @@ const mutations = {
 const actions = {
   doLogin ({ commit }, loginData) {
     commit('loginStart')
-    axiosInstance.get('personal/bd_personal.php/login', { params: loginData }, { withCredentials: true })
+
+  /* loginData.action = 'login' // añadimos el atributo action que espera el backend
+    var formData = new FormData()
+    for (var key in loginData) {
+      formData.append(key, loginData[key])
+    }
+  */
+
+//    axiosInstance.get('personal/bd_personal.php', formData, headerFormData)
+//    axiosInstance.get('personal/bd_personal.php/login', { params: loginData }, { withCredentials: true })
+
+
+     axiosInstance.get('personal/bd_personal.php/login', { params: loginData }, { withCredentials: true })
       .then((response) => {
         if (response.data.length === 0) { throw new Error('Credenciales incorrectas') }
         commit('setUser', { login: loginData.login, pers: response.data[0] })
