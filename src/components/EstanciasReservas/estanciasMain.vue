@@ -72,6 +72,7 @@ export default {
       this.getRecords(this.tabs['estanciasMain-1'].meta.value)
     } else { // es la primera vez que entro, cargo valores po defecto
       this.filterRecord.tipoEstancia = '1'
+      this.filterRecord.estadoAeat = ['PENDIENTE', 'GENERADA AEAT']
       this.getRecords(this.filterRecord)
     }
   },

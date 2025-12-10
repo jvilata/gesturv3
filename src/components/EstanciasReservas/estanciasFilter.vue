@@ -69,6 +69,19 @@
         emit-value
         map-options
       />
+      <q-select
+        label="Estado AEAT"
+        stack-label
+        outlined
+        clearable
+        v-model="filterR.estadoAeat"
+        multiple
+        :options="listaEstadosFactura"
+        option-value="codElemento"
+        option-label="codElemento"
+        emit-value
+        use-chips
+      />
       <!--q-checkbox v-model="noFact" @update:model-value="noFacturadas" label="No facturadas" /-->
       </div>
       <q-input outlined clearable autofocus label="Nº. Factura" stack-label v-model="filterR.NroFactura" />
@@ -114,7 +127,7 @@ export default {
     }
   },
   computed: {
-    ...mapState('tablasAux', ['listaTipoEstancia', 'listaSINO']),
+    ...mapState('tablasAux', ['listaTipoEstancia', 'listaSINO', 'listaEstadosFactura']),
     ...mapState('servicios', ['listaServicios'])
   },
   methods: {

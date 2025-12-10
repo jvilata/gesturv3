@@ -395,8 +395,7 @@ export default {
                     .then(response => {
                       
                       const estadoAEAT = JSON.stringify(response.data.textoValidacion).slice(1,-1);
-                      
-                      
+                                            
                       formData.append("estadoAEAT", estadoAEAT) //Correcto, Incorrecto
                       formData.append('idAeat', res.id)
 
@@ -406,7 +405,9 @@ export default {
                        // formData.append("respAEAT", JSON.stringify(response.data))
                        formData.append("respAEAT", respuestaAEAT_Decodificada)
 
-                      if(estadoAEAT == 'Incorrecto') {
+                      if (estadoAEAT == 'Correcto') {
+                        this.$q.dialog({ title: 'Factura generada', message: estadoAEAT })
+                      } else if (estadoAEAT !== 'Correcto'){
                           
                         // 2. Usar una expresión regular para encontrar el error
                         // Busca el texto que está entre <tikR:DescripcionErrorRegistro> y </tikR:DescripcionErrorRegistro>
@@ -418,14 +419,21 @@ export default {
                             // El grupo de captura (.*?) contiene el texto del error
                             descripcionError = match[1];
                         }
-                        // 3. Mostrar el diálogo con el error específico
-                        this.$q.dialog({ 
-                            title: '❌ Error en Envío AEAT', 
-                            message: `<p>Estado: <strong>${estadoAEAT}</strong></p><p><strong>Detalle del Error:</strong> ${descripcionError}</p>`,
+                        this.enviarMail(estadoAEAT, descripcionError)
+                        if(estadoAEAT == 'Incorrecto') {
+                          this.$q.dialog({ 
+                              title: '❌ Error en Envío AEAT', 
+                              message: `<p>Estado: <strong>${estadoAEAT}</strong></p><p><strong>Detalle del Error:</strong> ${descripcionError}</p>`,
+                              html: true 
+                          });
+                        } else if(estadoAEAT == 'ParcialmenteCorrecto'){
+                          
+                          this.$q.dialog({ 
+                            title: '⚠️ Factura con errores', 
+                            message:  `<p>Estado: <strong>${estadoAEAT}</strong></p><p><strong>Detalle del Error:</strong> ${descripcionError}</p><p><strong>Debe corregir el error o avisar al administrador</p>`,
                             html: true 
-                        });
-                      } else {
-                        this.$q.dialog({ title: 'Factura generada', message: estadoAEAT })
+                         })
+                        }
                       }
                       
                        
@@ -464,7 +472,28 @@ export default {
         .catch(error => {
           this.$q.dialog({ title: 'Error', message: error })
         })
+
       
+    },
+
+      enviarMail (estadoAEAT, descripcionError) {
+        var subject = 'Incidencia AEAT: ' + estadoAEAT;
+        var body = descripcionError;
+        const encodedSubject = encodeURIComponent(subject)
+        const encodedBody = encodeURIComponent(body)
+
+        // 2. Construir la URL base de mailto:
+        let mailtoUrl = `mailto:mvilata@vidawm.com`
+         // 3. Agregar el asunto
+        mailtoUrl += `?subject=${encodedSubject}`
+        mailtoUrl += `&cc=jvilata@vidawm.com`
+
+        // 6. Agregar el cuerpo del mensaje
+        mailtoUrl += `&body=${encodedBody}`
+
+        // 7. Abrir la URL, lo que dispara el cliente de correo.
+        window.location.href = mailtoUrl
+    
     },
 
     validacionCliente(record) {

@@ -213,6 +213,19 @@ export default {
     },
     getRecords (objFilter) {
       if (this.fromEstanciasMain !== undefined) {
+       // objFilter.estadoAeat = (objFilter.estadoAeat && objFilter.estadoAeat !== null ? objFilter.estadoAeat.join() : null) // paso de array a concatenacion de strings (join)
+
+       // --- MODIFICACIÓN RECOMENDADA ---
+        if (Array.isArray(objFilter.estadoAeat)) {
+            // Solo llama a join si es un array.
+            objFilter.estadoAeat = objFilter.estadoAeat.join();
+        } else {
+            // Si no es un array (es un string, null, etc.), lo pasamos directamente o lo forzamos a null.
+            // Si es un string que ya tiene un valor, se enviará ese string.
+            // Si quieres asegurarte de que solo se envíen valores válidos:
+            objFilter.estadoAeat = objFilter.estadoAeat || null; 
+        }
+        
         this.$q.loading.show()
         this.findEstancia(objFilter)
           .then(response => {
