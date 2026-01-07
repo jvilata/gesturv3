@@ -5,7 +5,7 @@
         <q-btn flat @click="leftDrawerOpen = !leftDrawerOpen" round dense icon="menu" />
         <div class="items-center no-wrap absolute-center">
          <div v-if="modoTest" class="text-subtitle1">{{ nomAplicacion }} TEST - TEST - TEST</div>
-          <div v-if="!modoTest" class="text-subtitle1">{{ nomAplicacion }}-  v03.12.2025</div>
+          <div v-if="!modoTest" class="text-subtitle1">{{ nomAplicacion }}-  v07.01.2026</div>
         </div>
         <div class="q-gutter-sm q-pr-md row items-center no-wrap absolute-right">
           <q-btn round flat class="bg-red-9 text-weight-light">

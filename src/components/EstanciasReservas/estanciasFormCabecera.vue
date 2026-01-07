@@ -67,7 +67,7 @@
           :readonly="isFacturaGenerada"
         />
         <q-input class="col-xs-4 col-sm-2"  outlined label="N.Viajeros" stack-label v-model="recordToSubmit.numViajeros" :readonly="isFacturaGenerada"/>
-        <q-input class="col-xs-8 col-sm-4"  outlined label="Observaciones" stack-label v-model="recordToSubmit.observaciones" :readonly="isFacturaGenerada" />
+        <q-input class="col-xs-8 col-sm-4"  outlined label="Observaciones" stack-label v-model="recordToSubmit.observaciones"  />
       </div>
       <div class="row q-mt-lg" v-if="recordToSubmit.RegistroFactura == 'RegistroAlta'">
         <q-input class="col-xs-4 col-sm-2" outlined readonly label="Base" stack-label v-model="recordToSubmit.base" />
@@ -75,10 +75,10 @@
         <q-input class="col-xs-4 col-sm-1" outlined readonly label="Importe retención" stack-label v-model="recordToSubmit.Retencion"/>
         <q-input class="col-xs-6 col-sm-2" outlined readonly label="Total IVA" stack-label v-model="recordToSubmit.totalIva"/>
         <q-input class="col-xs-6 col-sm-2" outlined readonly label="Total Estancia" stack-label v-model="recordToSubmit.totalEstancia" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="Fianza" stack-label v-model="recordToSubmit.Fianza" :readonly="isFacturaGenerada" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="En efectivo" stack-label v-model="recordToSubmit.ACuenta" :readonly="isFacturaGenerada"/>
-        <q-input class="col-xs-3 col-sm-1" outlined label="Transferencia" stack-label v-model="recordToSubmit.PorBanco" :readonly="isFacturaGenerada" />
-        <q-input class="col-xs-3 col-sm-1" outlined label="TPV" stack-label v-model="recordToSubmit.PorDatafono" :readonly="isFacturaGenerada"/>
+        <q-input class="col-xs-3 col-sm-1" outlined label="Fianza" stack-label v-model="recordToSubmit.Fianza"  />
+        <q-input class="col-xs-3 col-sm-1" outlined label="En efectivo" stack-label v-model="recordToSubmit.ACuenta" />
+        <q-input class="col-xs-3 col-sm-1" outlined label="Transferencia" stack-label v-model="recordToSubmit.PorBanco"  />
+        <q-input class="col-xs-3 col-sm-1" outlined label="TPV" stack-label v-model="recordToSubmit.PorDatafono" />
       </div>
       <div class="row q-mt-sm" >
         <q-btn outline class="col-xs-12 col-sm-2" color="primary" label="Generar Factura" @click="validacionDatosFactura(recordToSubmit)" :disable="isFacturaGenerada" /> <!-- -->
@@ -455,22 +455,22 @@ export default {
                             
                             })
                             .catch(error => {
-                              this.$q.dialog({ title: 'Error', message: error })
+                              this.$q.dialog({ title: 'Error 4', message: error.message })
                             })
                         
                         })
                         .catch(error => {
-                            this.$q.dialog({ title: 'Error', message: error })
+                            this.$q.dialog({ title: 'Error 3', message: error.message })
                         })
 
                     })
                     .catch(error => {
                        
-                        this.$q.dialog({ title: 'Error', message: error })
+                        this.$q.dialog({ title: 'Error 2', message: error.message })
                     })  
         })
         .catch(error => {
-          this.$q.dialog({ title: 'Error', message: error })
+          this.$q.dialog({ title: 'Error 1', message: error.message })
         })
 
       
